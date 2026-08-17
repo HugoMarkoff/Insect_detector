@@ -47,9 +47,11 @@ An automated code review + fixes landed these:
 
 ## P3 — features
 
+- [x] **Change detection** ([rpi/detect.py](../rpi/detect.py)) flags frames with a
+      small, localized change ("likely insect") into `manifest.json`; the gallery
+      has a dedicated insect view + a timelapse player. It's a motion proxy on the
+      static scene — a **trained insect classifier** is the next step up.
 - [ ] **Daily timelapse video** — an `ffmpeg` job stitching each day's frames.
-- [ ] **Software motion/change detection** to keep only frames where something
-      moved (big storage/bandwidth win for a bug trap).
 - [ ] **On-device storage fallback** — keep capturing when WiFi is down.
 - [ ] **Focus-stacking / macro optics** notes and mounts for sharp insect shots.
 - [ ] **Power budget** — measure sleep current and per-shot Wh for the low-power

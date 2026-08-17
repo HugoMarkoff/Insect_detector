@@ -33,12 +33,14 @@ sudo apt-get update -qq
 sudo apt-get install -y -qq git python3 python3-pip
 python3 -c 'import smbus2' 2>/dev/null || sudo apt-get install -y -qq python3-smbus2 \
     || pip3 install --break-system-packages smbus2
+python3 -c 'import PIL' 2>/dev/null || sudo apt-get install -y -qq python3-pil \
+    || pip3 install --break-system-packages pillow    # for insect/change detection
 command -v rpicam-still >/dev/null || command -v libcamera-still >/dev/null \
     || { echo "WARNING: no rpicam-still/libcamera-still found - install the camera stack"; }
 
 # ---- 2. scripts into place ----
 say "Copying scripts to $HOME_DIR…"
-cp "$SCRIPT_DIR/timelapse.py" "$SCRIPT_DIR/gh_uploader.py" "$HOME_DIR/"
+cp "$SCRIPT_DIR/timelapse.py" "$SCRIPT_DIR/gh_uploader.py" "$SCRIPT_DIR/detect.py" "$HOME_DIR/"
 
 # ---- 3. deploy key ----
 if [ ! -f "$KEY" ]; then
@@ -105,6 +107,7 @@ Wants=network-online.target
 Type=simple
 User=$PI_USER
 Environment=TIMELAPSE_DIR=$HOME_DIR/timelapse_images
+Environment=TIMELAPSE_INTERVAL=$INTERVAL
 Environment=GH_OWNER=$GH_USER
 Environment=GH_REPO=$GH_REPO
 Environment=GH_BRANCH=images

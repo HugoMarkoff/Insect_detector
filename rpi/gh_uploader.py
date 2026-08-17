@@ -7,10 +7,16 @@ rebuilt. The Pages site lists these via the GitHub API.
 
 Auth: SSH deploy key at ~/.ssh/insectcam_deploy (write access to this one repo).
 """
+import json
 import os
 import shutil
 import subprocess
 import time
+
+try:
+    import detect                         # optional insect/change detection (needs Pillow)
+except ImportError:
+    detect = None
 
 OWNER = os.environ.get("GH_OWNER", "HugoMarkoff")
 REPO = os.environ.get("GH_REPO", "Insect_detector")
@@ -20,6 +26,7 @@ WORK = os.path.expanduser("~/insect-cam-git")
 KEY = os.path.expanduser("~/.ssh/insectcam_deploy")
 KEEP = int(os.environ.get("GH_KEEP", "60"))
 INTERVAL = int(os.environ.get("GH_UPLOAD_INTERVAL", "90"))
+CAPTURE_INTERVAL = int(os.environ.get("TIMELAPSE_INTERVAL", "180"))  # for the manifest
 REMOTE = f"git@github.com:{OWNER}/{REPO}.git"
 
 ENV = dict(os.environ, GIT_SSH_COMMAND=(
@@ -62,6 +69,37 @@ def sync_window(imgdir):
     return changed
 
 
+def build_manifest(imgdir):
+    """Score each frame for insect activity (once, cached) and write manifest.json
+    at the branch root: {interval, count, insects, frames:[{name,insect,score}]}
+    newest-first. The gallery reads this single file."""
+    meta_path = os.path.join(WORK, "meta.json")
+    try:
+        meta = json.load(open(meta_path))
+    except Exception:
+        meta = {}
+    files = sorted(f for f in os.listdir(imgdir) if f.endswith(".jpg"))   # chronological
+    prev = None
+    for f in files:
+        if f not in meta:
+            if prev is not None and detect and detect.available():
+                insect, score = detect.score_frame(os.path.join(imgdir, prev),
+                                                    os.path.join(imgdir, f))
+            else:
+                insect, score = False, 0.0
+            meta[f] = {"insect": bool(insect), "score": float(score)}
+        prev = f
+    meta = {k: v for k, v in meta.items() if k in set(files)}             # drop rolled-out
+    with open(meta_path, "w") as fh:
+        json.dump(meta, fh)
+    frames = [{"name": f, "insect": meta[f]["insect"], "score": meta[f]["score"]}
+              for f in sorted(files, reverse=True)]                        # newest first
+    manifest = {"interval": CAPTURE_INTERVAL, "count": len(frames),
+                "insects": sum(1 for f in frames if f["insect"]), "frames": frames}
+    with open(os.path.join(WORK, "manifest.json"), "w") as fh:
+        json.dump(manifest, fh)
+
+
 def push():
     git("add", "-A")
     if git("diff", "--cached", "--quiet", check=False).returncode == 0:
@@ -87,9 +125,11 @@ def main():
         try:
             if imgdir is None:                # (re)initialise inside the loop so a
                 imgdir = ensure_repo()        # git error retries instead of crash-looping
-            if sync_window(imgdir) and push():
-                n = len([f for f in os.listdir(imgdir) if f.endswith(".jpg")])
-                print(f"pushed rolling window ({n} images)", flush=True)
+            if sync_window(imgdir):
+                build_manifest(imgdir)        # score frames -> manifest.json
+                if push():
+                    n = len([f for f in os.listdir(imgdir) if f.endswith(".jpg")])
+                    print(f"pushed rolling window ({n} images)", flush=True)
         except Exception as e:
             print(f"cycle error: {e}", flush=True)
             imgdir = None

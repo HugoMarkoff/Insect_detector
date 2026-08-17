@@ -43,12 +43,24 @@ Arduino **always-on** (`0x0E`) on startup so the board doesn't power-cycle the P
 
 Browse the raw feed locally at `http://<pi-ip>:8080/`.
 
+## Insect detection (`detect.py`)
+
+Each new frame is compared to the previous one (downscaled, blurred grayscale
+absolute difference). A small, **localized** change means something appeared on
+the otherwise-static scene — flagged as a likely insect. A near-zero change is an
+empty frame; a huge change is a light/camera shift and is ignored. Thresholds are
+env-tunable (`DETECT_DIFF`, `DETECT_MIN_FRAC`, `DETECT_MAX_FRAC`). It's a motion
+proxy, not an ML classifier (see [IMPROVEMENTS.md](IMPROVEMENTS.md)); needs Pillow.
+
 ## Publishing (`gh_uploader.py`)
 
 Keeps only the last `GH_KEEP` (default 60) images and **force-pushes a single
 squashed commit** to the `images` branch — so repo history never grows and the
-Pages branch is never rebuilt. The page lists images via the GitHub API, so image
-pushes don't trigger a Pages build (which would hit the ~10 builds/hour limit).
+Pages branch is never rebuilt. It also writes **`manifest.json`** (each frame +
+its insect flag/score, newest-first), which the gallery reads as its single data
+source — one request per refresh instead of a directory crawl. The gallery shows
+a **timelapse player** (plays frames across time), the **last 10 frames**, and the
+**last 10 flagged with insects**.
 
 Auth is an **SSH deploy key** scoped to this one repo (`~/.ssh/insectcam_deploy`),
 not a token. The repo must be **public** for anonymous visitors' browsers to read
