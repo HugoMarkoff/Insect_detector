@@ -49,6 +49,6 @@ protocol, note backward compatibility with the existing I2C command numbers.
 
 ## A note on the origins
 
-This derives from the Really a Robot / Animal Detect trap platform. The original
+This derives from the Animal Detect trap platform. The original
 cloud (Firebase) backend has been removed — please don't reintroduce credentials
 or private keys into the repo.

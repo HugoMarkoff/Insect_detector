@@ -11,7 +11,7 @@ trigger, just steady frames, day and night.
 
 ### ▶ Live gallery: **https://hugomarkoff.github.io/Insect_detector/**
 
-Built on the **Really a Robot / Animal Detect Trap PCB V3.3** — ATmega328P +
+Built on the **Animal Detect Trap PCB V3.3** — ATmega328P +
 Raspberry Pi + IMX708 NoIR camera, reverse-engineered from the Altium project
 and the original Animal Detect firmware.
 
@@ -88,7 +88,7 @@ Tuning (all in [firmware/src/main.cpp](firmware/src/main.cpp) or at runtime over
 
 ## Hardware
 
-Really a Robot Trap PCB V3.3 · ATmega328P @ 16 MHz · Raspberry Pi · IMX708 NoIR
+Animal Detect Trap PCB V3.3 · ATmega328P @ 16 MHz · Raspberry Pi · IMX708 NoIR
 camera · IR illuminator · 2S Li-ion. The board carries connectors for PIR, reed
 (MAG), an IR/flash output, a spare trigger output, an LDR (dusk sensing), and a
 `Boot1` serial header for programming. Full pinout in [docs/HARDWARE.md](docs/HARDWARE.md).
@@ -104,6 +104,6 @@ improvements are tracked in [docs/IMPROVEMENTS.md](docs/IMPROVEMENTS.md).
 
 ## Credits
 
-Derived from the Really a Robot / Animal Detect trap platform. Firmware and the
+Derived from the Animal Detect trap platform. Firmware and the
 RPi stack rewritten here for standalone insect timelapse use (no cloud backend —
 images publish straight to GitHub Pages).
