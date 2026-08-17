@@ -1,6 +1,10 @@
 """Retry-burner: waits for the USB-serial adapter, then keeps attempting the
 target bootloader burn (through the ArduinoISP master) until it succeeds.
 
+WINDOWS-ONLY convenience jig (uses avrdude.exe paths + a console title API). On
+Linux/macOS burn the bootloader directly with PlatformIO instead:
+    pio run -e fuses_bootloader_arduinoisp -t bootloader
+
 Meant to run in its own console window while you hold the MISO wires and the
 reset clip on the target. Every state change is printed and logged to burn.log.
 
@@ -8,17 +12,22 @@ Burn recipe (harvested from `pio run -e fuses_bootloader_arduinoisp -t bootloade
   1) chip erase + unlock + fuses: lfuse=0xF7 hfuse=0xD7 efuse=0xFD  (ext 16 MHz, BOD 2.7V, EESAVE)
   2) flash urboot (autobaud, LED on B5) + lock 0xFF
 """
-import ctypes
 import datetime
 import os
+import re
 import subprocess
 import sys
 import time
 
 import serial.tools.list_ports
 
-ctypes.windll.kernel32.SetConsoleTitleW("Target bootloader burner - hold the wires!")
-os.system("")
+if os.name == "nt":
+    import ctypes
+    ctypes.windll.kernel32.SetConsoleTitleW("Target bootloader burner - hold the wires!")
+    os.system("")            # enable ANSI colour escapes in cmd.exe
+else:
+    sys.exit("burn_until_success.py is Windows-only; on Linux/macOS run:\n"
+             "  pio run -e fuses_bootloader_arduinoisp -t bootloader")
 
 HOME = os.path.expanduser("~")
 AVRDUDE = os.path.join(HOME, ".platformio", "packages", "tool-avrdude", "avrdude.exe")
@@ -61,7 +70,6 @@ def run_avrdude(args, timeout=120):
 
 def classify(out):
     low = out.lower()
-    import re
     sigs = re.findall(r"signature = 0x([0-9a-f]{6})", low)
     if sigs:
         uniq = sorted(set(sigs))

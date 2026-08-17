@@ -54,8 +54,11 @@ def sync_window(imgdir):
             os.remove(os.path.join(imgdir, f)); changed = True
     for f in src:
         dst = os.path.join(imgdir, f)
-        if not os.path.exists(dst):
-            shutil.copy2(os.path.join(SRC, f), dst); changed = True
+        srcp = os.path.join(SRC, f)
+        # Re-copy if the source grew since a prior copy (guards against pushing a
+        # frame that rpicam-still was still writing when first copied).
+        if not os.path.exists(dst) or os.path.getsize(dst) != os.path.getsize(srcp):
+            shutil.copy2(srcp, dst); changed = True
     return changed
 
 
@@ -75,15 +78,21 @@ def push():
 
 
 def main():
-    imgdir = ensure_repo()
+    if "GH_OWNER" not in os.environ:
+        print("gh_uploader: GH_OWNER not set, defaulting to 'HugoMarkoff' - "
+              "forks must set GH_OWNER (setup.sh sets it in the service unit).", flush=True)
     print(f"uploader: {OWNER}/{REPO} branch {BRANCH}, keep {KEEP}, every {INTERVAL}s", flush=True)
+    imgdir = None
     while True:
         try:
+            if imgdir is None:                # (re)initialise inside the loop so a
+                imgdir = ensure_repo()        # git error retries instead of crash-looping
             if sync_window(imgdir) and push():
                 n = len([f for f in os.listdir(imgdir) if f.endswith(".jpg")])
                 print(f"pushed rolling window ({n} images)", flush=True)
         except Exception as e:
             print(f"cycle error: {e}", flush=True)
+            imgdir = None
         time.sleep(INTERVAL)
 
 

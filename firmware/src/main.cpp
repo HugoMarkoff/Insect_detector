@@ -16,7 +16,9 @@
 // ------------------------------------------------------------------ build config
 #define ENABLE_PIR_TRIGGER 0            // 1 = also capture on PIR motion
 #define ENABLE_REED_TRIGGER 0           // 1 = also capture on reed/magnet
-#define ENABLE_BATTERY_GUARD 1          // 0 for bench use without a battery on A0!
+#define ENABLE_BATTERY_GUARD 0          // bench-safe default; set 1 for FIELD builds
+                                        // (needs a real battery on A0 - a floating
+                                        //  pin reads garbage and would sleep the MCU)
 #define DEFAULT_INTERVAL_SECONDS 60UL   // timelapse cadence (min 15 recommended)
 
 // ------------------------------------------------------------------ pins (board-fixed)
@@ -68,8 +70,10 @@
 // Timer2 free-runs with /1024 prescaler; at 16 MHz that is 61.04 overflows per
 // second, and it keeps running in SLEEP_MODE_PWR_SAVE thanks to the AS2 trick
 // inherited from the original firmware (the 16 MHz crystal stays active).
-// The RPi re-syncs wall-clock time over I2C on every boot, so long-term drift
-// (~0.05% + crystal) never accumulates past one capture cycle.
+// NOTE: the WiFi timelapse (timelapse.py) never sends CMD_TIME, so this wall
+// clock free-runs from 00:00 and drifts (~0.06%/day from the 61-vs-61.04
+// rounding). It is ONLY used by the ping / quiet-window paths — if you enable
+// those, have the RPi send 0x00 periodically to keep it accurate.
 struct Time {
     int hours, minutes, seconds;
     void tick() {
@@ -94,16 +98,16 @@ ISR(TIMER2_OVF_vect) {
 }
 
 unsigned long getElapsedTime() {
-    cli();
-    unsigned long elapsed = totalMilliseconds;
-    sei();
+    uint8_t sreg = SREG; cli();                  // save + restore interrupt state
+    unsigned long elapsed = totalMilliseconds;   // (never force sei() blindly)
+    SREG = sreg;
     return elapsed;
 }
 
 unsigned long nowSeconds() {
-    cli();
+    uint8_t sreg = SREG; cli();
     unsigned long s = sleepPeriods;
-    sei();
+    SREG = sreg;
     return s;
 }
 
@@ -114,26 +118,33 @@ unsigned long nextShotAt = 0;                    // in sleepPeriods seconds
 Time pingTime = {8, 0, 0};
 Time ignoreTimeFrom = {0, 0, 0};                 // from==to means "no quiet window"
 Time ignoreTimeTo = {0, 0, 0};
-int pingInterval = 12;                           // hours
+volatile int pingInterval = 12;                  // hours
 int lastDisplayedMinute = -1;
 bool sendPing = false;
 
-long maxRaspberryPiOnTime = 80000;               // ms the RPi may stay up per cycle
+// Pre-always-on on-time budget. Raised from 80 s so a slow first boot (SD
+// expansion, service start) can't cut power before timelapse.py sends 0x0E.
+volatile long maxRaspberryPiOnTime = 150000;     // ms the RPi may stay up per cycle
 volatile int requestNumber = 0;                  // 3 = RPi requested shutdown
 volatile int triggerReason = TRIGGER_PING;
 bool initializationComplete = false;
 volatile bool alwaysOn = false;                  // never cut RPi power on timeout (cmd 0x0E)
+volatile bool powerCutRequested = false;         // explicit gate-off via 0x0F pin 2 state 0
 
-// IR flash
-bool flashOn = false;
-unsigned long flashDuration = 2;                 // seconds
-int duskValue = 600;
-int imageType = 0;                               // 0 RGB, 1 IR
+// IR flash (touched by the I2C ISR + main loop -> volatile)
+volatile bool flashOn = false;
+volatile unsigned long flashDuration = 2;        // seconds
+volatile int duskValue = 600;
+volatile int imageType = 0;                      // 0 RGB, 1 IR
 
 // digipot (PIR sensitivity — kept for protocol compatibility)
 byte digiPotAddress = 0x11;
-int digiPotValue = 254;
-bool digipotChangeStatus = false;
+volatile int digiPotValue = 254;
+volatile bool digipotChangeStatus = false;
+
+// Sensor values sampled in the main loop and returned by the I2C ISR. Never
+// sample in the ISR: analogRead (~112 us) / digitalRead there stalls the bus.
+volatile int cachedPir = 0, cachedMag = 0, cachedLdr = 0, cachedBattDv = 0;
 
 // battery
 const float R1 = 30000.0, R2 = 7500.0;
@@ -144,7 +155,7 @@ const float minVoltageOffset = 0.6;
 const float maxBatteryVoltage = 8.8;
 float inVoltage = 0.0;
 float prevBatteryLevel = 0, prevBatteryPercent = -1;
-unsigned int procentVolt = 0;
+volatile unsigned int procentVolt = 0;
 
 #if ENABLE_PIR_TRIGGER
 volatile byte pirState = LOW, prevPirState = HIGH;
@@ -180,6 +191,7 @@ unsigned int batteryCapacity() {
     for (int i = 0; i < 100; i++)
         adcVoltage += ((analogRead(BATTERY_CAPACITY_PIN) * refVoltage) / 102400.0);
     inVoltage = adcVoltage / (R2 / (R1 + R2)) + voltageOffset;
+    cachedBattDv = constrain((int)(inVoltage * 10.0 + 0.5), 0, 255);  // for I2C 0x13
     if (inVoltage > maxVoltage) procentVolt = 100;
     else if (inVoltage <= minVoltage) procentVolt = 1;
     else procentVolt = max(1U, (unsigned int)((100 * (inVoltage - minVoltage)) / (maxVoltage - minVoltage)));
@@ -199,14 +211,15 @@ unsigned int batteryCapacity() {
 void checkBatteryStatus() {
 #if ENABLE_BATTERY_GUARD
     unsigned int current = batteryCapacity();
-    if (inVoltage < minVoltage - minVoltageOffset || inVoltage > maxBatteryVoltage) {
-        if (prevBatteryPercent > 10) {
-            Serial.println(F("Battery out of range - re-measuring in 10 s"));
-            delay(10000);
-            current = batteryCapacity();
-        }
+    bool outOfRange = inVoltage < minVoltage - minVoltageOffset || inVoltage > maxBatteryVoltage;
+    if (outOfRange) {
+        // Always confirm with a second reading - one transient/floating sample
+        // must never latch a permanent shutdown.
+        Serial.println(F("Battery out of range - re-measuring in 10 s"));
+        delay(10000);
+        current = batteryCapacity();
         if (inVoltage < minVoltage - minVoltageOffset || inVoltage > maxBatteryVoltage) {
-            Serial.println(F("Battery out of range - shutting down"));
+            Serial.println(F("Battery out of range (confirmed) - shutting down"));
             digitalWrite(RELAY_PIN, LOW);
             LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF);
             return;
@@ -270,6 +283,10 @@ void handleFlash() {
 }
 
 // ------------------------------------------------------------------ I2C slave
+// receiveEvent / requestEvent run in the TWI interrupt with interrupts OFF, so
+// they must NOT do Serial I/O (busy-waits on a buffer drained by another ISR ->
+// deadlock) or analogRead (~112 us bus stall). They only latch bytes into state
+// and return values the main loop has cached. Any logging happens in loop().
 void receiveEvent(int howMany) {
     if (howMany < 2) return;
     int command = Wire.read();
@@ -279,16 +296,10 @@ void receiveEvent(int howMany) {
                 updateTimeStruct.seconds = Wire.read();
                 updateTimeStruct.minutes = Wire.read();
                 updateTimeStruct.hours = Wire.read();
-                Serial.print(F("Time synced: "));
-                Serial.print(updateTimeStruct.hours);
-                Serial.print(':');
-                Serial.print(updateTimeStruct.minutes);
-                Serial.print(':');
-                Serial.println(updateTimeStruct.seconds);
             }
             break;
         case CMD_SET_PING_INTERVAL:
-            if (howMany <= 3) pingInterval = Wire.read();
+            if (howMany == 2) pingInterval = Wire.read();
             break;
         case CMD_SET_PING_TIME:
             if (howMany == 4) {
@@ -305,19 +316,15 @@ void receiveEvent(int howMany) {
                 ignoreTimeTo.hours = Wire.read();
                 ignoreTimeTo.minutes = Wire.read();
                 ignoreTimeTo.seconds = Wire.read();
-                Serial.println(F("Quiet window set"));
             }
             break;
         case CMD_FLASH_ON:
-            if (howMany == 2) {
-                flashOn = true;
-                flashDuration = Wire.read();
-            }
+            if (howMany == 2) { flashOn = true; flashDuration = Wire.read(); }
             break;
         case CMD_SET_DUSK_VALUE:
             if (howMany == 2) {
                 duskValue = Wire.read() * 4;
-                if (duskValue > 1000) duskValue += 3;
+                if (duskValue > 1000) duskValue += 3;   // nudge onto the 1023 "always-flash" sentinel
             }
             break;
         case CMD_SET_PIR_VALUE:
@@ -329,56 +336,38 @@ void receiveEvent(int howMany) {
         case CMD_SET_TIME_INTERVAL:                    // legacy: minutes
             if (howMany == 2) {
                 int m = Wire.read();
-                intervalSeconds = (m == 254) ? DEFAULT_INTERVAL_SECONDS : m * 60UL;
+                intervalSeconds = (m == 254) ? DEFAULT_INTERVAL_SECONDS : (unsigned long)m * 60UL;
                 if (intervalSeconds == 0) intervalSeconds = DEFAULT_INTERVAL_SECONDS;
-                Serial.print(F("Interval (min cmd): "));
-                Serial.println(intervalSeconds);
             }
             break;
         case CMD_SET_TIMELAPSE_SECONDS:                // new: seconds, 16-bit
             if (howMany == 3) {
                 unsigned int hi = Wire.read(), lo = Wire.read();
-                unsigned long s = (hi << 8) | lo;
-                if (s >= 15) {                          // below ~15 s the RPi can't finish a cycle
-                    intervalSeconds = s;
-                    Serial.print(F("Interval set: "));
-                    Serial.print(intervalSeconds);
-                    Serial.println(F(" s"));
-                }
+                unsigned long s = ((unsigned long)hi << 8) | lo;
+                if (s >= 15) intervalSeconds = s;      // below ~15 s the RPi can't finish a cycle
             }
             break;
         case CMD_SET_ALWAYS_ON:
-            if (howMany == 2) {
-                alwaysOn = Wire.read() != 0;
-                Serial.print(F("Always-on: "));
-                Serial.println(alwaysOn ? F("ON") : F("off"));
-            }
+            if (howMany == 2) alwaysOn = Wire.read() != 0;
             break;
         case CMD_SET_OUTPUT:
             if (howMany == 3) {
                 int pinId = Wire.read();
                 int state = Wire.read() ? HIGH : LOW;
-                int pin = (pinId == 0) ? FLASH_PIN
-                        : (pinId == 1) ? TRIGGER_PIN
-                        : (pinId == 2) ? RELAY_PIN : -1;
-                if (pin >= 0) {
-                    digitalWrite(pin, state);
-                    Serial.print(F("Output "));
-                    Serial.print(pinId);
-                    Serial.print(F(" -> "));
-                    Serial.println(state);
+                if (pinId == 2) {                      // RPi power gate
+                    if (state == LOW) powerCutRequested = true;  // honored by the capture loop
+                    else digitalWrite(RELAY_PIN, HIGH);
+                } else if (pinId == 0) {
+                    digitalWrite(FLASH_PIN, state);    // digitalWrite is ISR-safe (fast)
+                } else if (pinId == 1) {
+                    digitalWrite(TRIGGER_PIN, state);
                 }
             }
             break;
         case CMD_SET_MAX_ON_TIME:
             if (howMany == 2) {
                 int s = Wire.read();
-                if (s >= 10) {
-                    maxRaspberryPiOnTime = s * 1000L;
-                    Serial.print(F("Max on-time: "));
-                    Serial.print(s);
-                    Serial.println(F(" s"));
-                }
+                if (s >= 10) maxRaspberryPiOnTime = (long)s * 1000L;
             }
             break;
         default:
@@ -395,18 +384,21 @@ void requestEvent() {
         case CMD_ACTIVATION_TYPE: requestedData = triggerReason; break;
         case CMD_IMAGE_TYPE:      requestedData = imageType; break;
         case CMD_TURN_OFF_RPI_INTEGER: requestNumber = 3; break;
-        case CMD_READ_PIR:        requestedData = digitalRead(PIR_PIN); break;
-        case CMD_READ_MAG:        requestedData = digitalRead(REED_PIN); break;
-        case CMD_READ_LDR:        requestedData = analogRead(PHOTORESISTOR_PIN) / 4; break;
-        case CMD_READ_BATT_DV: {
-            int dv = (int)(inVoltage * 10.0 + 0.5);
-            requestedData = dv > 255 ? 255 : (dv < 0 ? 0 : dv);
-            break;
-        }
+        case CMD_READ_PIR:        requestedData = cachedPir; break;
+        case CMD_READ_MAG:        requestedData = cachedMag; break;
+        case CMD_READ_LDR:        requestedData = cachedLdr; break;
+        case CMD_READ_BATT_DV:    requestedData = cachedBattDv; break;
         case CMD_READ_VERSION:    requestedData = FW_VERSION; break;
         default:                  requestedData = -1; break;
     }
     Wire.write(requestedData);
+}
+
+// Sample sensors in the main loop so the I2C ISR can return cached values.
+void sampleSensors() {
+    cachedPir = digitalRead(PIR_PIN);
+    cachedMag = digitalRead(REED_PIN);
+    cachedLdr = analogRead(PHOTORESISTOR_PIN) >> 2;    // 0-255
 }
 
 // ------------------------------------------------------------------ capture cycle
@@ -432,22 +424,25 @@ void runCaptureCycle(int reason) {
     unsigned long timerStart = getElapsedTime();
     digitalWrite(RELAY_PIN, HIGH);               // RPi on
 
+    // In always-on the timeout branch simply never fires, so this loops until the
+    // RPi requests shutdown (0x07) or an explicit gate-off (0x0F pin 2 -> 0).
     while (retry_count < 3) {
         handleFlash();
-        if (alwaysOn) timerStart = getElapsedTime();   // freeze the timeout clock
+        sampleSensors();
         long elapsed = (long)(getElapsedTime() - timerStart);
-        if (digitalRead(RELAY_PIN) == LOW) digitalWrite(RELAY_PIN, HIGH);
+        if (digitalRead(RELAY_PIN) == LOW && !powerCutRequested) digitalWrite(RELAY_PIN, HIGH);
 
-        if (requestNumber == 3) {                // RPi finished + requested shutdown
+        if (requestNumber == 3 || powerCutRequested) {   // RPi done, or explicit gate-off
             requestNumber = 0;
+            powerCutRequested = false;
             initializationComplete = true;
             digitalWrite(RELAY_PIN, LOW);
-            Serial.println(F("RPi done - power cut"));
+            Serial.println(F("RPi power cut"));
             delay(2000);                         // let rails drain / sensors settle
             applyPendingDigipot();
             break;
         }
-        if (elapsed > maxRaspberryPiOnTime) {    // RPi never finished
+        if (!alwaysOn && elapsed > maxRaspberryPiOnTime) {   // RPi never finished
             digitalWrite(RELAY_PIN, LOW);
             delay(5000);
             retry_count++;
@@ -455,6 +450,7 @@ void runCaptureCycle(int reason) {
             Serial.print(F("RPi timeout, retry "));
             Serial.println(retry_count);
         }
+        delay(20);                               // don't hot-spin (I2C is interrupt-driven)
     }
     if (retry_count >= 3) {
         digitalWrite(RELAY_PIN, LOW);
@@ -479,6 +475,7 @@ void setup() {
     pinMode(FLASH_PIN, OUTPUT);
     pinMode(TRIGGER_PIN, OUTPUT);
     pinMode(RELAY_PIN, OUTPUT);
+    pinMode(LED_PIN, OUTPUT);                     // D13 (shares SCK) - was implicit via SPI.begin()
     pinMode(PHOTORESISTOR_PIN, INPUT);
     pinMode(CHIP_SELECT, OUTPUT);
     digitalWrite(RELAY_PIN, LOW);
@@ -507,6 +504,7 @@ void setup() {
 }
 
 void loop() {
+    sampleSensors();                             // keep the I2C-readable cache fresh
     handleMinuteChange();
 
 #if ENABLE_REED_TRIGGER

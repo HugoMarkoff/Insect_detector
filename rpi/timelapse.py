@@ -32,16 +32,26 @@ except ImportError:
 # INTERVAL and IR_HOLD are env-overridable so the same script serves both the
 # normal timelapse and a hardware IR test (IR held on, fast captures):
 #   TIMELAPSE_IR_HOLD=1 TIMELAPSE_INTERVAL=15 python3 timelapse.py
-INTERVAL = int(os.environ.get("TIMELAPSE_INTERVAL", "180"))   # seconds between captures
-IR_HOLD = os.environ.get("TIMELAPSE_IR_HOLD", "0") == "1"     # force IR on, never off
+def _int_env(name, default):
+    try:
+        return int(os.environ.get(name, default))
+    except ValueError:
+        return int(default)
+
+INTERVAL = _int_env("TIMELAPSE_INTERVAL", 180)               # seconds between captures
+IR_HOLD = os.environ.get("TIMELAPSE_IR_HOLD", "0") == "1"    # force IR on, never off
 PORT = 8080
-# absolute-safe: rc.local runs this as root, but keep images in tester's home
+# Set TIMELAPSE_DIR explicitly (the systemd unit does) so the capture service and
+# the uploader service agree on one path regardless of which user they run as -
+# under root, expanduser("~") would resolve to /root and the two could diverge.
 IMG_DIR = os.environ.get("TIMELAPSE_DIR", os.path.expanduser("~/timelapse_images"))
+MAX_STORED = _int_env("TIMELAPSE_MAX_STORED", 500)          # cap ~/timelapse_images (SD safety)
 I2C_ADDR = 0x08
 IR_PIN = 0                           # CMD_SET_OUTPUT pin id 0 = IR/flash (D5)
 WIDTH, HEIGHT = 1920, 1080
 ROTATION = 180
-TUNING = "/usr/share/libcamera/ipa/rpi/vc4/imx708_noir.json"
+# Sensor/SoC-specific; overridable. Missing file -> capture runs without tuning.
+TUNING = os.environ.get("TIMELAPSE_TUNING", "/usr/share/libcamera/ipa/rpi/vc4/imx708_noir.json")
 MIN_BYTES = 20000
 
 os.makedirs(IMG_DIR, exist_ok=True)
@@ -52,13 +62,22 @@ def i2c_write(cmd, data):
     if not _bus_ok:
         return False
     try:
-        b = smbus2.SMBus(1)
-        b.write_i2c_block_data(I2C_ADDR, cmd, data)
-        b.close()
+        with smbus2.SMBus(1) as b:        # context manager closes the fd even on error
+            b.write_i2c_block_data(I2C_ADDR, cmd, data)
         return True
     except Exception as e:
         print(f"[i2c] cmd 0x{cmd:02X} failed: {e}", flush=True)
         return False
+
+
+def prune_old(keep):
+    """Keep only the newest `keep` JPEGs in IMG_DIR so the SD card can't fill."""
+    imgs = sorted((f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")), reverse=True)
+    for f in imgs[keep:]:
+        try:
+            os.remove(os.path.join(IMG_DIR, f))
+        except OSError:
+            pass
 
 
 def ir(on):
@@ -216,6 +235,7 @@ def main():
             ir(False)
         print(f"  {'saved ' + str(os.path.getsize(path)) + ' bytes' if ok else 'FAILED'}",
               flush=True)
+        prune_old(MAX_STORED)         # bound SD usage
         time.sleep(max(1, INTERVAL - (time.time() - start)))
 
 

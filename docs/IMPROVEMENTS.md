@@ -1,73 +1,72 @@
 # Improvements & roadmap
 
-A living list of where this project can get better, roughly prioritized. Good
-first issues are marked 🟢. Contributions welcome — see [CONTRIBUTING.md](../CONTRIBUTING.md).
+A living list of where this project can get better. Good first issues are marked
+🟢. Contributions welcome — see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
-## P1 — correctness / reliability (do these first)
+## ✅ Fixed in the pre-release hardening pass
 
-- [ ] **Prune the capture directory.** `timelapse.py` writes to `~/timelapse_images`
-      forever and never deletes — at 3-min intervals (~86 MB/day) it will fill the
-      SD card over weeks. The GitHub uploader keeps a rolling window in its *own*
-      working copy, but the source folder is unbounded. Fix: cap `~/timelapse_images`
-      to the last N frames (or age them out) in the capture loop. 🟢
-- [ ] **Get sensor reads out of the I2C interrupt.** The Arduino's `requestEvent`
-      (I2C `onRequest`, runs in interrupt context) calls `analogRead()` / `digitalRead()`,
-      and `receiveEvent` does `Serial.print()`. Blocking work in an ISR can stall
-      the bus and drop bytes. Fix: sample sensors in the main loop into `volatile`
-      cache variables and have the I2C callbacks only read those; move Serial logging
-      out of the callbacks.
-- [ ] **Recoverable battery guard.** On an out-of-range reading the firmware does
-      `LowPower.powerDown(SLEEP_FOREVER)`. A single bad ADC sample then bricks the
-      node until a manual reset. Fix: sleep for a bounded interval and re-measure.
-- [ ] **Use the watchdog.** `avr/wdt.h` is included but unused. A watchdog reset
+An automated code review + fixes landed these:
+
+- **I2C ISR no longer does Serial/`analogRead`.** The firmware's `receiveEvent`/
+  `requestEvent` run in interrupt context; they now only latch bytes and return
+  values cached by the main loop (`sampleSensors()`), removing a real
+  bus-stall / potential deadlock that hit on every capture.
+- **Capture directory is bounded.** `timelapse.py` prunes `~/timelapse_images`
+  to the newest `TIMELAPSE_MAX_STORED` (500) frames — no more silent SD fill.
+- **Battery guard is recoverable + bench-safe.** Requires two consecutive
+  out-of-range readings before shutdown, and `ENABLE_BATTERY_GUARD` defaults to
+  `0` (a floating A0 was bricking fresh bench builds).
+- **SMBus fd leak fixed** (`with smbus2.SMBus(1)`), and the uploader no longer
+  crash-loops on a git error (`ensure_repo` retries inside the loop).
+- **Explicit gate-off honored.** `0x0F` pin 2 → 0 now actually cuts RPi power
+  (was defeated by the capture loop re-asserting the pin).
+- **Truncated-frame guard** in the uploader (re-copies if the source grew),
+  `volatile` on ISR-shared globals, `LED_PIN` pinMode, atomic time reads, and
+  the Windows-only burn tool no longer crashes on import on Linux/macOS.
+
+## P1 — still open
+
+- [ ] **Use the watchdog.** `avr/wdt.h` is included but unused; a watchdog reset
       would recover the MCU from any hang in the field.
+- [ ] **Wall-clock sync for the ping/quiet paths.** `timelapse.py` never sends
+      `CMD_TIME`, so the firmware clock free-runs — fine today (those paths are
+      inactive) but the quiet-window feature needs it. Send `0x00` periodically
+      if you enable quiet hours. 🟢
 
 ## P2 — robustness / quality
 
-- [ ] **Two ways to set the interval.** Legacy `CMD_SET_TIME_INTERVAL` (minutes)
-      and new `CMD_SET_TIMELAPSE_SECONDS` (seconds) both exist. Keep both for
-      compatibility but document clearly which the RPi should use.
-- [ ] **Uploader backoff.** `gh_uploader.py` retries every cycle on failure; add
-      exponential backoff on repeated push errors to avoid hammering on an outage.
+- [ ] **Uploader backoff.** Add exponential backoff on repeated push failures
+      instead of retrying every cycle during an outage.
 - [ ] **Gallery API rate limit.** The Pages front-end polls the GitHub API
-      (60 req/hr per anonymous IP). Many simultaneous viewers on one NAT could hit
-      it. Mitigate with a longer poll, or publish a small `manifest.json` alongside
-      the images and read that instead.
-- [ ] **Timestamp overlay** burned into each frame (date/time, maybe battery %),
-      so images are self-describing.
-- [ ] **Name the magic numbers** in the firmware (61 Timer2 overflows/sec, 80 000 ms
-      on-time, retry counts) as named constants.
+      (60 req/hr per anonymous IP). For many simultaneous viewers, publish a
+      small `manifest.json` alongside the images and read that instead.
+- [ ] **Timestamp overlay** burned into each frame (date/time, battery %).
+- [ ] **`volatile` for multi-byte ISR state.** `updateTimeStruct` / `pingTime` /
+      `ignoreTime*` are written in the I2C ISR and read in `loop()`; guard those
+      reads with `ATOMIC_BLOCK` if you enable the ping/PIR paths.
 
 ## P3 — features
 
-- [ ] **Daily timelapse video** — an `ffmpeg` job that stitches each day's frames
-      into an MP4 and links it from the gallery.
+- [ ] **Daily timelapse video** — an `ffmpeg` job stitching each day's frames.
 - [ ] **Software motion/change detection** to keep only frames where something
-      moved (huge storage/bandwidth win for a bug trap).
-- [ ] **On-device storage fallback** — keep capturing to USB/SD when WiFi is down,
-      backfill on reconnect.
+      moved (big storage/bandwidth win for a bug trap).
+- [ ] **On-device storage fallback** — keep capturing when WiFi is down.
 - [ ] **Focus-stacking / macro optics** notes and mounts for sharp insect shots.
-- [ ] **Power budget** — measure sleep current and per-shot Wh; publish a battery
-      sizing table for the low-power trap mode.
+- [ ] **Power budget** — measure sleep current and per-shot Wh for the low-power
+      trap mode.
 
 ## Portability (for forks)
 
-- [x] Setup no longer hardcodes the Pi user / repo — `rpi/setup.sh` generates the
-      systemd units from `GH_USER` / `GH_REPO` / `INTERVAL` variables.
-- [x] **Template the front-end too.** `setup.sh` now substitutes `OWNER`/`REPO`
-      into `web/index.html` when publishing to gh-pages, so a fork needs to touch
-      nothing by hand.
-- [ ] Note the fixed assumptions (`I2C addr 0x08`, bus `1`, camera rotation `180`)
-      in one place so they're easy to change.
+- [x] `rpi/setup.sh` generates the systemd units + templates the front-end from
+      `GH_USER`/`GH_REPO`/`INTERVAL` — a fork edits nothing by hand.
+- [x] Camera tuning path is now `TIMELAPSE_TUNING` (env), with graceful fallback.
+- [x] The uploader warns when `GH_OWNER` is unset instead of silently pushing to
+      the author's repo.
+- [ ] Collect the remaining fixed assumptions (`I2C addr 0x08`, bus `1`, camera
+      rotation `180`) into one documented config block.
 
 ## Infrastructure
 
-- [x] MIT license, contributing guide.
-- [ ] **CI: compile the firmware on every push/PR** (PlatformIO in GitHub Actions)
-      so contributions are validated automatically. *(workflow added — see
-      `.github/workflows/firmware.yml`.)*
-- [ ] Basic tests for the Python (parse/rolling-window logic).
-
----
-
-*Code-review findings from an automated pass are folded into P1/P2 above.*
+- [x] MIT license, `CONTRIBUTING.md`, and CI that compiles the firmware on every
+      push/PR (`.github/workflows/firmware.yml`).
+- [ ] Basic unit tests for the Python (filename parsing, rolling-window logic).
