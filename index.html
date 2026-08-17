@@ -90,6 +90,7 @@
       <span>Insect Detector<small>Live IR timelapse · Animal Detect</small></span></div>
     <div class="chips">
       <span class="chip"><span class="dot live" id="dot"></span><span id="status">connecting…</span></span>
+      <span class="chip" id="battChip" style="display:none">🔋 <b id="batt">–</b></span>
       <span class="chip"><b id="count">–</b> frames</span>
       <span class="chip">🐛 <b id="insectCount">–</b> insects</span>
     </div>
@@ -130,6 +131,7 @@
      fires an infrared illuminator, and captures a frame — no motion trigger, just
      steady frames. "Insect" frames are flagged by frame-to-frame change detection
      on the Pi (a motion proxy on the static scene).</p>
+  <p id="telemetry" style="color:var(--dim);font-variant-numeric:tabular-nums"></p>
   <p>Source &amp; docs: <a href="https://github.com/HugoMarkoff/Insect_detector" target="_blank" rel="noopener">github.com/HugoMarkoff/Insect_detector</a></p>
 </div></footer>
 
@@ -147,7 +149,7 @@ const RAW=`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/images/`
 const MANIFEST_RAW=`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/manifest.json`;
 const LISTING=`https://api.github.com/repos/${OWNER}/${REPO}/contents/images?ref=${BRANCH}`;
 const POLL=90000;
-let frames=[], ordered=[], idx=0, playing=true, fps=8, timer=null, hasManifest=false;
+let frames=[], ordered=[], idx=0, playing=true, fps=8, timer=null, hasManifest=false, status={};
 
 function url(n){ return RAW + n; }
 function pretty(f){const m=f.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/);
@@ -160,7 +162,7 @@ async function load(){
   let fr=null;
   try{                                   // primary: manifest via CDN (frames + insect flags)
     const r=await fetch(MANIFEST_RAW+'?t='+Date.now(),{cache:'no-store'});
-    if(r.ok){ const m=await r.json(); fr=m.frames; hasManifest=true; }
+    if(r.ok){ const m=await r.json(); fr=m.frames; status=m.status||{}; hasManifest=true; }
   }catch(e){}
   if(!fr){                               // fallback: GitHub API listing (rate-limited, no flags)
     try{ const r=await fetch(LISTING+'&t='+Date.now(),{cache:'no-store'});
@@ -178,6 +180,7 @@ function render(){
   document.getElementById('count').textContent=frames.length;
   const insects=frames.filter(f=>f.insect);
   document.getElementById('insectCount').textContent=insects.length;
+  renderStatus();
 
   if(!frames.length){ setStatus('no frames yet','off'); return; }
   const age=ageMin(frames[0].name);
@@ -185,11 +188,12 @@ function render(){
   else if(age<40) setStatus(`${Math.round(age)} min ago`,'stale');
   else setStatus(`quiet · ${Math.round(age)} min ago`,'off');
 
-  // player timeline: oldest -> newest
-  const wasAtEnd = idx>=ordered.length-1;
-  ordered=[...frames].reverse();
+  // player timeline: newest -> oldest (plays backwards in time)
+  const wasAtNewest = idx<=0;
+  ordered=[...frames];                                        // newest first
   document.getElementById('scrub').max=Math.max(0,ordered.length-1);
-  if(wasAtEnd||idx>ordered.length-1) idx=ordered.length-1;   // stick to the live edge
+  if(wasAtNewest) idx=0;                                      // stick to newest as frames arrive
+  if(idx>ordered.length-1) idx=ordered.length-1;
   showFrame();
   ordered.forEach(f=>{const i=new Image();i.src=url(f.name);}); // preload for smooth play
 
@@ -201,6 +205,19 @@ function render(){
   else { ir.className=''; ir.innerHTML='<div class="empty">'+
     (hasManifest?'No insects flagged in the current window yet.'
                 :'Insect detection starts once the Pi runs the detector (redeploy).')+'</div>'; }
+}
+
+function renderStatus(){
+  const s=status||{}, bc=document.getElementById('battChip');
+  if(s.battery_pct!=null){ bc.style.display='';
+    document.getElementById('batt').textContent=s.battery_pct+'%'+(s.battery_v!=null?' · '+s.battery_v+'V':''); }
+  else bc.style.display='none';
+  const p=[];
+  if(s.battery_v!=null) p.push('Battery '+(s.battery_pct!=null?s.battery_pct+'% · ':'')+s.battery_v+' V');
+  if(s.light!=null) p.push('light '+s.light+'/255');
+  if(s.fw!=null) p.push('firmware v'+s.fw);
+  if(s.ts) p.push('updated '+s.ts);
+  document.getElementById('telemetry').textContent=p.join('  ·  ');
 }
 
 function card(f,ins){
@@ -216,7 +233,7 @@ function showFrame(){
   document.getElementById('stamp').textContent=pretty(f.name);
   document.getElementById('pos').textContent=`${idx+1} / ${ordered.length}`;
   document.getElementById('scrub').value=idx;
-  document.getElementById('liveBadge').style.display=(idx>=ordered.length-1)?'block':'none';
+  document.getElementById('liveBadge').style.display=(idx<=0)?'block':'none';
 }
 function tick(){ if(!ordered.length)return; idx=(idx+1)%ordered.length; showFrame(); }
 function toggle(){ playing=!playing; document.getElementById('play').textContent=playing?'❚❚':'▶'; run(); }
