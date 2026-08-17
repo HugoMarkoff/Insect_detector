@@ -56,6 +56,16 @@ the image list.
 
 ## First-time setup
 
+**The easy way** — clone the repo on the Pi and run the installer, which does
+everything below (deps, deploy key, gh-pages, services) and only asks you to
+paste one public key:
+
+```bash
+cd Insect_detector/rpi && GH_USER=<your-github-user> ./setup.sh
+```
+
+<details><summary>Or do it manually</summary>
+
 ```bash
 # 1. Dependencies
 sudo apt-get update && sudo apt-get install -y git python3-smbus2   # (smbus2 via pip if unavailable)
@@ -74,6 +84,8 @@ sudo systemctl enable --now insect-timelapse.service insect-uploader.service
 # 4. Gallery front-end → push web/index.html to a gh-pages branch, then enable
 #    GitHub Pages (Settings → Pages → gh-pages / root). Repo must be public.
 ```
+
+</details>
 
 ## Changing settings
 

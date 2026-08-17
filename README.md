@@ -1,5 +1,9 @@
 # 🐛 Insect Detector
 
+[![Live gallery](https://img.shields.io/badge/live-gallery-4fce8d)](https://hugomarkoff.github.io/Insect_detector/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+![Platform](https://img.shields.io/badge/ATmega328P%20%2B%20Raspberry%20Pi-informational)
+
 A wildlife-trap PCB repurposed into an **insect timelapse camera**, with a live
 public gallery. An ATmega328P controller drives an infrared illuminator and a
 Raspberry Pi + NoIR camera to take a frame every few minutes — no motion
@@ -64,8 +68,13 @@ battery. See the command table in [docs/HARDWARE.md](docs/HARDWARE.md).
    cd firmware
    pio run -e Upload_UART -t upload      # over the Boot1 serial header
    ```
-3. **Set up the Raspberry Pi** → [docs/RPI.md](docs/RPI.md): the capture loop, the
-   local gallery, and the GitHub Pages publisher all run as systemd services.
+3. **Set up the Raspberry Pi** — clone this repo on the Pi and run the installer:
+   ```bash
+   cd Insect_detector/rpi && GH_USER=<you> ./setup.sh
+   ```
+   It installs the capture loop, local gallery, and GitHub Pages publisher as
+   systemd services, and walks you through the deploy key. Details in
+   [docs/RPI.md](docs/RPI.md).
 4. **Watch it** at your Pages URL, or locally at `http://<pi-ip>:8080/`.
 
 Tuning (all in [firmware/src/main.cpp](firmware/src/main.cpp) or at runtime over I2C):
@@ -83,6 +92,15 @@ Really a Robot Trap PCB V3.3 · ATmega328P @ 16 MHz · Raspberry Pi · IMX708 No
 camera · IR illuminator · 2S Li-ion. The board carries connectors for PIR, reed
 (MAG), an IR/flash output, a spare trigger output, an LDR (dusk sensing), and a
 `Boot1` serial header for programming. Full pinout in [docs/HARDWARE.md](docs/HARDWARE.md).
+
+## Contributing
+
+Issues and PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Ideas and open
+improvements are tracked in [docs/IMPROVEMENTS.md](docs/IMPROVEMENTS.md).
+
+## License
+
+[MIT](LICENSE) © 2026 Hugo Markoff.
 
 ## Credits
 
