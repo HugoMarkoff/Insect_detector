@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Insect Timelapse</title>
+<style>
+  :root{color-scheme:dark light}
+  *{box-sizing:border-box}
+  body{margin:0;background:#14140f;color:#e8e6dc;font:15px/1.5 system-ui,-apple-system,sans-serif}
+  header{position:sticky;top:0;background:#1c1c15;border-bottom:1px solid #33332a;
+    padding:12px 18px;display:flex;gap:16px;align-items:baseline;flex-wrap:wrap;z-index:5}
+  h1{font-size:17px;font-weight:600;margin:0}
+  .meta{color:#9c9a8c;font-size:13px}
+  .dot{width:8px;height:8px;border-radius:50%;background:#5dca8f;display:inline-block;
+    margin-right:6px;vertical-align:middle}
+  .dot.stale{background:#e0a53a}
+  .dot.off{background:#d0524a}
+  @keyframes pulse{50%{opacity:.35}}
+  .dot.live{animation:pulse 2s ease-in-out infinite}
+  main{padding:18px;max-width:1100px;margin:0 auto}
+  #hero{width:100%;border-radius:12px;border:1px solid #33332a;background:#000;display:none}
+  #herocap{color:#9c9a8c;font-size:13px;margin:8px 2px 22px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  figure{margin:0}
+  figure img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;
+    border:1px solid #33332a;background:#000;cursor:pointer}
+  figcaption{color:#8a887c;font-size:11px;margin-top:3px;text-align:center}
+  .note{color:#9c9a8c;padding:36px 0;text-align:center}
+  a{color:inherit}
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="dot live" id="dot"></span>Insect Timelapse</h1>
+  <span class="meta"><b id="count">–</b> frames</span>
+  <span class="meta">latest: <b id="latest">–</b></span>
+  <span class="meta" id="status">connecting…</span>
+</header>
+<main>
+  <img id="hero" alt="latest capture">
+  <div id="herocap"></div>
+  <div class="grid" id="grid"></div>
+  <div class="note" id="note">Loading the latest captures…</div>
+</main>
+<script>
+// Lists images straight from the repo via the GitHub API (near real-time, no
+// Pages rebuild needed). Images are served from their raw download URLs.
+const OWNER = "HugoMarkoff", REPO = "Insect_detector", BRANCH = "images", DIR = "images";
+const API = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${DIR}?ref=${BRANCH}`;
+const POLL_MS = 90000;         // 40 req/hr — under the 60/hr unauthenticated cap
+let lastNewest = null;
+
+function pretty(f){
+  const m = f.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/);
+  return m ? `${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}:${m[6]}` : f;
+}
+function ageMin(f){
+  const m = f.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/);
+  if(!m) return null;
+  const d = new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +m[6]);
+  return (Date.now() - d.getTime())/60000;
+}
+function setStatus(txt, cls){
+  document.getElementById('status').textContent = txt;
+  document.getElementById('dot').className = 'dot ' + cls;
+}
+
+async function refresh(){
+  let items;
+  try{
+    const r = await fetch(API + '&t=' + Date.now(), {cache:'no-store'});
+    if(r.status === 403){ setStatus('rate-limited, retrying…','stale'); return; }
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    items = await r.json();
+  }catch(e){ setStatus('offline — cannot reach GitHub','off'); return; }
+
+  const files = items
+    .filter(x => x.type === 'file' && /\.jpg$/i.test(x.name))
+    .sort((a,b) => a.name < b.name ? 1 : -1);        // newest first
+
+  document.getElementById('count').textContent = files.length;
+  const note = document.getElementById('note'), hero = document.getElementById('hero');
+  if(!files.length){ note.textContent = 'No captures yet.'; hero.style.display='none'; return; }
+  note.style.display = 'none';
+
+  const newest = files[0];
+  document.getElementById('latest').textContent = pretty(newest.name);
+  const age = ageMin(newest.name);
+  if(age === null)      setStatus('', 'live');
+  else if(age < 8)      setStatus('live', 'live');
+  else if(age < 30)     setStatus(`last frame ${Math.round(age)} min ago`, 'stale');
+  else                  setStatus(`camera quiet — last frame ${Math.round(age)} min ago`, 'off');
+
+  if(newest.name !== lastNewest){
+    lastNewest = newest.name;
+    hero.src = newest.download_url; hero.style.display = 'block';
+    document.getElementById('herocap').textContent = 'newest: ' + pretty(newest.name);
+    document.getElementById('grid').innerHTML = files.map(f =>
+      `<figure><a href="${f.download_url}" target="_blank" rel="noopener">
+         <img loading="lazy" src="${f.download_url}"></a>
+       <figcaption>${pretty(f.name)}</figcaption></figure>`).join('');
+  }
+}
+refresh();
+setInterval(refresh, POLL_MS);
+</script>
+</body>
+</html>
