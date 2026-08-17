@@ -5,28 +5,35 @@ A 3D-printed ladybug that hides the electronics under its shell and looks
 blocks, so the same body works at 2 cm or 15 cm off the ground.
 
 **Part 1 (here): the belly** — [`ladybug_belly.py`](ladybug_belly.py), a
-parametric FreeCAD script.
+parametric FreeCAD script. [`make_drawing.py`](make_drawing.py) generates a
+dimensioned top/bottom drawing from the same parameters.
 Part 2 (next): the domed elytra shell that lifts off the top.
 
+![drawing](drawing.png)
 ![preview](preview.png)
+
+The IR board's geometry was pulled **straight out of the Altium file** (see
+[`irboard_extracted.png`](irboard_extracted.png)) — outline, mount holes,
+sensor and connector positions are manufacturing-exact.
 
 ## How the real hardware mounts
 
-Measured off the actual boards:
+Everything lives **inside** the body. Measured off the actual boards:
 
-| Part | Where it goes | Why |
+| Part | Where it goes | How |
 |---|---|---|
-| **IR board** (batwing, ~100 × 80 mm) | **Under the floor**, on four bosses, screwed up from below | Its LEDs *and* the light sensor are on the bottom face — mounting it outside keeps them unobstructed and leaves the floor solid (one hole instead of a big window) |
-| **Camera** (Pi V2 **or** V3) | **Inside**, on 21 × 12.5 mm standoffs — only the lens pokes down through a Ø12 mm hole | V2 and V3 share the same hole pattern, so one mount fits both. Ø12 clears both lens barrels |
-| **Light sensor** | Already on the IR board | No separate window needed |
-| **Pi / trap board** | Inside, on standoffs | Dry side |
+| **IR board** (batwing X, 81 × 98.4 — exact from the PcbDoc) | On a **smart elevation**: M3 posts at its real holes (0,−6.5)/(0,−29.1) + centreline rest posts + a perimeter ledge, 5 mm up | The floor has **wing-shaped windows that the LED fields fill tightly** — only the diode zones and the light sensor are open. The centre strip (logo, mount holes, the JST pins, the sensor legs) stays over solid floor, and the 5 mm lift gives every spike free air — the ledge is gapped right where the JST pins hang |
+| **Light sensor** (VT90N1 at (0,+6.3) — from the PcbDoc) | Its own Ø8 window in the solid strip | Reads ambient light straight down |
+| **Camera** (Pi V2 **or** V3 — same 21 × 12.5 mm holes) | **Inside the board's camera slot** (37 mm wide, camera is 25) on 3 mm posts | Lens looks down a Ø12 hole that clears both V2 and V3 barrels, ringed by a baffle collar so IR can't glare into it |
+| **Pi Zero 2 W** | Portrait, on 13 mm posts **above** the IR board | Official 58 × 23 hole pattern; posts clear the board outline and the camera. Full-size Pi pattern is in a comment |
 
-The camera hole sits in the **notch at the top of the batwing** — the board's own
-cutout is the camera's line of sight. A shallow batwing-shaped recess in the
-underside locates the board so it can't rotate.
+> **Sealing:** one rectangular **clear acrylic sheet (106 × 96 × 2 mm)** drops
+> into a rebate on the underside and is siliconed in — it closes every floor
+> opening (wing windows, sensor hole, camera hole) in one go. Cheap to buy,
+> two straight cuts to make.
 
-> The only penetration in the floor is the Ø12 camera hole, sealed by a clear
-> disc glued into the Ø18 rebate underneath. Everything else stays watertight.
+The board keeps **~1.5–6 mm wiggle room** to the cavity wall all the way round —
+it drops in flat and lifts out without a fight.
 
 ## Build it
 
@@ -43,8 +50,9 @@ solid). Current output:
 
 | Part | Size | Volume |
 |---|---|---|
-| `belly` | 116 × 162 × 45 mm | ~133 cm³ |
-| `leg_segment` | 9.5 × 9.5 × 20 mm | 0.6 cm³ |
+| `belly` | 135 × 185 × 47 mm | ~140 cm³ |
+| `leg_segment` | 9.5 × 9.5 × 33 mm (25 + peg) | 1.8 cm³ |
+| `leg_segment_half` | 9.5 × 9.5 × 20.5 mm | 0.7 cm³ |
 | `foot` | 14 × 14 × 14 mm | 0.7 cm³ |
 
 ## The waterproof lid ("lift") — how the seal works
@@ -74,9 +82,9 @@ in, because the joint is a labyrinth:
 
 Two things you still add by hand:
 
-1. **Clear discs over the optics.** The camera and IR windows have a rebate
-   underneath sized for a clear acrylic/glass disc — glue it in with a bead of
-   clear silicone. That seals the only holes in the floor.
+1. **The clear sheet.** Cut a 106 × 96 mm rectangle of 2 mm acrylic (round
+   the corners roughly to R8 with a file), bed it into the underside rebate on
+   a bead of clear silicone. That seals every floor opening at once.
 2. **A vent.** A fully sealed box breathes with temperature and sucks moisture
    past any seal. Stick a small square of PTFE/Gore vent tape over a 3 mm hole
    drilled high on a side wall, or accept the (slightly leaky) cable gland as
@@ -87,8 +95,9 @@ Two things you still add by hand:
 | Part | Qty | Notes |
 |---|---|---|
 | `belly` | 1 | Print as-is, belly down. The leg bosses are the only overhang and they're short — no supports needed. |
-| `leg_segment` | 12–24 | Tiny and fast. This is your height kit. |
-| `foot` | 6 | Print peg-up. |
+| `leg_segment` | 20 (4 legs × 5) | 25 mm each — 5 per leg ≈ 12.5 cm legs. |
+| `leg_segment_half` | 4–8 | 12.5 mm fine-adjust blocks for slopes. |
+| `foot` | 4 | Print peg-up. |
 
 0.2 mm layers, 3 perimeters, 20–30 % infill. **PETG or ASA if it lives
 outdoors** — PLA sags in a sun-baked enclosure. TPU feet grip better and damp
@@ -100,17 +109,23 @@ vibration.
 
 ## Height adjustment (the Lego bit)
 
-Every `leg_segment` adds **12 mm** and has a peg on top / socket underneath:
+**Four legs, tilted 14° outward like a tripod** — the belly sockets are angled,
+so the taller you stack, the wider the stance. Every `leg_segment` adds **25 mm**
+along the leg:
 
 ```
-belly socket → [segment] → [segment] → [foot]
+belly socket (14° out) → [block] → [block] → ... → [foot]
 ```
 
-- Shortest: foot straight into the belly ≈ 2 cm clearance.
-- Each segment: +12 mm. Six ≈ 9 cm.
-- **Square pegs** mean the legs can't rotate — round ones would let the body
-  slowly wander out of level.
-- Stack the downhill legs taller to stand level on a slope.
+| Blocks per leg | Leg length | Ground clearance | Feet spread |
+|---|---|---|---|
+| 2 | 56 mm | 54 mm | +14 mm/side |
+| 3 | 81 mm | 79 mm | +20 mm/side |
+| 4 | 106 mm | 103 mm | +26 mm/side |
+| **5** | **131 mm ≈ 12.5 cm** | **127 mm** | **+32 mm/side** |
+
+- **Square pegs** mean the legs can't rotate — the splay angle stays put.
+- Stack the downhill legs taller (use the half blocks) to stand level on a slope.
 
 **Camera height is your focus knob.** The IMX708 won't focus closer than ~10 cm,
 so print enough segments to bracket 10–20 cm.
@@ -123,24 +138,30 @@ re-run. The ones you'll actually touch:
 | Param | What it does |
 |---|---|
 | `body_len`, `body_wid` | Overall footprint |
-| `ir_outline`, `ir_mounts` | The batwing footprint and its screw holes — **trace your board** |
+| `ir_outline` | The exact batwing outline (auto-extracted from `IRarray-v6.1.pcbdoc`) |
+| `ir_mounts`, `sensor_pos` | Exact centreline holes + VT90N1 spot (from the PcbDoc) |
+| `win_inset`, `win_xmin` | Wing-window fit: rim width and solid-strip width |
 | `cam_pos`, `cam_lens_d` | Camera lens hole (Ø12 clears V2 and V3) |
-| `disc_d`, `disc_th` | Clear sealing disc rebate |
-| `pcb_posts`, `pcb_post_h` | Main board standoffs — **set to your real hole pattern** |
+| `sheet_w/l/r/th` | The one-piece clear sealing sheet |
+| `pi_posts`, `pi_post_h` | Pi Zero posts (full-size Pi pattern in the comment) |
+| `leg_splay`, `leg_seg_h` | Tripod angle and block height |
 | `fit` | Leg peg tightness |
 | `skirt_th`, `skirt_gap`, `tongue_w`, `tongue_h` | The seal — part 2 must match these |
 
-> ⚠️ `ir_mounts` and `pcb_posts` are still **placeholders** — measure the screw
-> holes on your IR board and Pi and set them before printing the belly. The
-> outline, camera mount and seal are dimensioned from the real hardware.
+> ⚠️ Before printing the belly, measure and set: `ir_mounts` (the two
+> centreline holes), `sensor_pos`, and check the notch/outline against your
+> PCB. Everything else is dimensioned from the real hardware.
 > The legs are safe to print right now.
 
-### Internal layout
+### Internal layout (bottom → top)
 
-The IR board hangs **outside** under the floor. Inside, the camera sits low on
-short posts (lens reaching into its hole) inside a baffle collar that blocks IR
-glare from creeping into the lens; the Pi / trap board mounts beside it. Raise
-`rim_h` if your stack is tall.
+| Z from floor top | What |
+|---|---|
+| 0–3 mm | Floor, with wing windows + sensor + lens holes; clear sheet in the rebate below |
+| 3 mm | Camera posts — lens reaches down into its hole, baffle collar around it |
+| 8 mm | **IR board** on its 5 mm elevation — LED domes and solder spikes hang in free air over the windows |
+| 16 mm | **Pi Zero** on 13 mm posts — one post pair inside the camera slot, one below the board |
+| 27 mm | Seat level — the shell's skirt lands here |
 
 ## Still to design
 
