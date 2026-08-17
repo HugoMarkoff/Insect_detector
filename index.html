@@ -3,107 +3,191 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Insect Timelapse</title>
+<title>Insect Detector — live timelapse</title>
+<meta name="description" content="A live insect timelapse from a Raspberry Pi + ATmega328P trap camera.">
 <style>
-  :root{color-scheme:dark light}
+  :root{
+    --bg:#0c0e0d; --bg2:#121614; --card:#151a17; --line:#252b27; --line2:#323a34;
+    --txt:#e9ede9; --muted:#9aa39c; --dim:#6d766f;
+    --accent:#4fce8d; --accent-dim:#2f7f57;
+    --radius:14px; --shadow:0 6px 24px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
   *{box-sizing:border-box}
-  body{margin:0;background:#14140f;color:#e8e6dc;font:15px/1.5 system-ui,-apple-system,sans-serif}
-  header{position:sticky;top:0;background:#1c1c15;border-bottom:1px solid #33332a;
-    padding:12px 18px;display:flex;gap:16px;align-items:baseline;flex-wrap:wrap;z-index:5}
-  h1{font-size:17px;font-weight:600;margin:0}
-  .meta{color:#9c9a8c;font-size:13px}
-  .dot{width:8px;height:8px;border-radius:50%;background:#5dca8f;display:inline-block;
-    margin-right:6px;vertical-align:middle}
-  .dot.stale{background:#e0a53a}
-  .dot.off{background:#d0524a}
-  @keyframes pulse{50%{opacity:.35}}
-  .dot.live{animation:pulse 2s ease-in-out infinite}
-  main{padding:18px;max-width:1100px;margin:0 auto}
-  #hero{width:100%;border-radius:12px;border:1px solid #33332a;background:#000;display:none}
-  #herocap{color:#9c9a8c;font-size:13px;margin:8px 2px 22px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-  figure{margin:0}
-  figure img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;
-    border:1px solid #33332a;background:#000;cursor:pointer}
-  figcaption{color:#8a887c;font-size:11px;margin-top:3px;text-align:center}
-  .note{color:#9c9a8c;padding:36px 0;text-align:center}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#15211b 0%,var(--bg) 55%) fixed;
+    color:var(--txt);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
   a{color:inherit}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+
+  header{position:sticky;top:0;z-index:20;backdrop-filter:blur(10px);
+    background:rgba(12,14,13,.72);border-bottom:1px solid var(--line)}
+  .bar{display:flex;align-items:center;gap:14px;padding:13px 0;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:17px;letter-spacing:.2px}
+  .logo{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;
+    background:linear-gradient(145deg,var(--accent),var(--accent-dim));color:#06120c;font-size:15px}
+  .brand small{display:block;font-weight:400;font-size:11.5px;color:var(--muted);letter-spacing:.3px;margin-top:-2px}
+  .chips{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .chip{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);
+    background:var(--bg2);border:1px solid var(--line);padding:5px 11px;border-radius:999px}
+  .chip b{color:var(--txt);font-weight:600}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
+  .dot.live{box-shadow:0 0 0 0 rgba(79,206,141,.5);animation:pulse 2s infinite}
+  .dot.stale{background:#e0a53a} .dot.off{background:#e0564a}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(79,206,141,.45)}70%{box-shadow:0 0 0 7px rgba(79,206,141,0)}100%{box-shadow:0 0 0 0 rgba(79,206,141,0)}}
+
+  .hero-wrap{padding:26px 0 8px}
+  .hero{position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);
+    background:#000;box-shadow:var(--shadow);aspect-ratio:16/9;cursor:zoom-in}
+  .hero img{width:100%;height:100%;object-fit:cover;display:block;
+    animation:fade .6s ease}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .hero .cap{position:absolute;left:0;right:0;bottom:0;padding:34px 18px 14px;
+    background:linear-gradient(to top,rgba(0,0,0,.72),transparent);
+    display:flex;align-items:center;gap:12px;font-size:14px}
+  .badge{background:var(--accent);color:#06120c;font-weight:650;font-size:11px;letter-spacing:.5px;
+    padding:3px 8px;border-radius:6px;text-transform:uppercase}
+  .cap .t{color:#fff;font-weight:600} .cap .s{color:#c9d2cb;margin-left:auto;font-size:12.5px}
+
+  section.frames{padding:26px 0 40px}
+  .h2{display:flex;align-items:baseline;gap:10px;margin:0 0 14px}
+  .h2 h2{font-size:15px;font-weight:600;margin:0;letter-spacing:.3px}
+  .h2 span{color:var(--dim);font-size:13px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px}
+  figure{margin:0;border-radius:11px;overflow:hidden;border:1px solid var(--line);background:var(--card);
+    cursor:zoom-in;transition:transform .18s ease,border-color .18s ease}
+  figure:hover{transform:translateY(-3px);border-color:var(--line2)}
+  figure img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+  figcaption{padding:7px 10px;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .note{text-align:center;color:var(--muted);padding:60px 0}
+  .note .big{font-size:34px;margin-bottom:8px}
+
+  footer{border-top:1px solid var(--line);padding:26px 0 44px;color:var(--muted);font-size:13.5px}
+  footer .cols{display:flex;gap:34px;flex-wrap:wrap}
+  footer h3{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--dim);margin:0 0 8px;font-weight:600}
+  footer a{color:var(--accent);text-decoration:none} footer a:hover{text-decoration:underline}
+  footer p{margin:0 0 6px;max-width:520px}
+
+  .lb{position:fixed;inset:0;z-index:50;background:rgba(6,8,7,.94);display:none;
+    align-items:center;justify-content:center;padding:24px}
+  .lb.open{display:flex}
+  .lb img{max-width:100%;max-height:86vh;border-radius:10px;box-shadow:var(--shadow)}
+  .lb .lcap{position:absolute;top:18px;left:0;right:0;text-align:center;color:#cfd6d0;font-size:13.5px}
+  .lb button{position:absolute;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
+    color:#fff;width:46px;height:46px;border-radius:50%;font-size:20px;cursor:pointer;display:grid;place-items:center}
+  .lb button:hover{background:rgba(255,255,255,.16)}
+  .lb .close{top:16px;right:16px;width:40px;height:40px}
+  .lb .prev{left:16px;top:50%;transform:translateY(-50%)}
+  .lb .next{right:16px;top:50%;transform:translateY(-50%)}
+  @media(max-width:560px){.chips{width:100%;margin-left:0}.hero .cap .s{display:none}}
 </style>
 </head>
 <body>
 <header>
-  <h1><span class="dot live" id="dot"></span>Insect Timelapse</h1>
-  <span class="meta"><b id="count">–</b> frames</span>
-  <span class="meta">latest: <b id="latest">–</b></span>
-  <span class="meta" id="status">connecting…</span>
+  <div class="wrap bar">
+    <div class="brand"><span class="logo">🐛</span>
+      <span>Insect Detector<small>Live IR timelapse · Really a Robot</small></span></div>
+    <div class="chips">
+      <span class="chip"><span class="dot live" id="dot"></span><span id="status">connecting…</span></span>
+      <span class="chip"><b id="count">–</b> frames</span>
+      <span class="chip">every <b id="interval">3</b> min</span>
+    </div>
+  </div>
 </header>
-<main>
-  <img id="hero" alt="latest capture">
-  <div id="herocap"></div>
-  <div class="grid" id="grid"></div>
-  <div class="note" id="note">Loading the latest captures…</div>
-</main>
-<script>
-// Lists images straight from the repo via the GitHub API (near real-time, no
-// Pages rebuild needed). Images are served from their raw download URLs.
-const OWNER = "HugoMarkoff", REPO = "Insect_detector", BRANCH = "images", DIR = "images";
-const API = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${DIR}?ref=${BRANCH}`;
-const POLL_MS = 90000;         // 40 req/hr — under the 60/hr unauthenticated cap
-let lastNewest = null;
 
-function pretty(f){
-  const m = f.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/);
-  return m ? `${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}:${m[6]}` : f;
-}
-function ageMin(f){
-  const m = f.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/);
-  if(!m) return null;
-  const d = new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +m[6]);
-  return (Date.now() - d.getTime())/60000;
-}
-function setStatus(txt, cls){
-  document.getElementById('status').textContent = txt;
-  document.getElementById('dot').className = 'dot ' + cls;
-}
+<div class="wrap hero-wrap">
+  <div class="hero" id="hero" onclick="openLB(0)" style="display:none">
+    <img id="heroImg" alt="latest capture">
+    <div class="cap"><span class="badge">Latest</span>
+      <span class="t" id="heroTime">–</span><span class="s" id="heroMeta">IR · 1920×1080</span></div>
+  </div>
+</div>
+
+<section class="frames wrap">
+  <div class="h2"><h2>All frames</h2><span id="sub"></span></div>
+  <div class="grid" id="grid"></div>
+  <div class="note" id="note"><div class="big">📷</div>Loading the latest captures…</div>
+</section>
+
+<footer><div class="wrap cols">
+  <div><h3>About</h3>
+    <p>A wildlife trap board repurposed as an insect timelapse camera. An ATmega328P
+       wakes a Raspberry Pi on a fixed interval, fires an infrared illuminator, captures a
+       frame with a NoIR camera, and pushes it here — no motion trigger, just steady frames.</p></div>
+  <div><h3>Build</h3>
+    <p>Really a Robot Trap PCB V3.3 · ATmega328P · Raspberry Pi · IMX708 NoIR.<br>
+       Source &amp; flashing docs:
+       <a href="https://github.com/HugoMarkoff/Insect_detector" target="_blank" rel="noopener">github.com/HugoMarkoff/Insect_detector</a></p></div>
+  <div><h3>Feed</h3>
+    <p>Frames refresh automatically every 90&nbsp;seconds. The camera holds the last
+       ~60 shots. Click any frame to view it full size.</p></div>
+</div></footer>
+
+<div class="lb" id="lb" onclick="if(event.target.id==='lb')closeLB()">
+  <div class="lcap" id="lbcap"></div>
+  <button class="close" onclick="closeLB()" aria-label="Close">✕</button>
+  <button class="prev" onclick="stepLB(-1)" aria-label="Previous">‹</button>
+  <img id="lbImg" alt="capture">
+  <button class="next" onclick="stepLB(1)" aria-label="Next">›</button>
+</div>
+
+<script>
+const OWNER="HugoMarkoff", REPO="Insect_detector", BRANCH="images", DIR="images";
+const API=`https://api.github.com/repos/${OWNER}/${REPO}/contents/${DIR}?ref=${BRANCH}`;
+const POLL=90000;
+let files=[], lbIdx=0;
+
+const pad=n=>String(n).padStart(2,'0');
+function parse(f){const m=f.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/);return m?
+  {label:`${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}:${m[6]}`,
+   date:new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6])}:{label:f,date:null};}
+function setStatus(txt,cls){document.getElementById('status').textContent=txt;
+  document.getElementById('dot').className='dot '+cls;}
 
 async function refresh(){
   let items;
   try{
-    const r = await fetch(API + '&t=' + Date.now(), {cache:'no-store'});
-    if(r.status === 403){ setStatus('rate-limited, retrying…','stale'); return; }
-    if(!r.ok) throw new Error('HTTP ' + r.status);
-    items = await r.json();
-  }catch(e){ setStatus('offline — cannot reach GitHub','off'); return; }
+    const r=await fetch(API+'&t='+Date.now(),{cache:'no-store'});
+    if(r.status===403){setStatus('rate-limited, retrying','stale');return;}
+    if(!r.ok)throw 0; items=await r.json();
+  }catch(e){setStatus('offline','off');return;}
+  files=items.filter(x=>x.type==='file'&&/\.jpg$/i.test(x.name))
+             .map(x=>({name:x.name,url:x.download_url,...parse(x.name)}))
+             .sort((a,b)=>a.name<b.name?1:-1);
+  document.getElementById('count').textContent=files.length;
+  const note=document.getElementById('note'),hero=document.getElementById('hero');
+  if(!files.length){note.style.display='';note.innerHTML='<div class="big">🌙</div>No captures yet.';hero.style.display='none';return;}
+  note.style.display='none';
 
-  const files = items
-    .filter(x => x.type === 'file' && /\.jpg$/i.test(x.name))
-    .sort((a,b) => a.name < b.name ? 1 : -1);        // newest first
+  const n=files[0], age=n.date?(Date.now()-n.date)/60000:null;
+  document.getElementById('heroTime').textContent=n.label;
+  if(age===null) setStatus('live','live');
+  else if(age<8) setStatus('live','live');
+  else if(age<40) setStatus(`${Math.round(age)} min ago`,'stale');
+  else setStatus(`quiet · ${Math.round(age)} min ago`,'off');
 
-  document.getElementById('count').textContent = files.length;
-  const note = document.getElementById('note'), hero = document.getElementById('hero');
-  if(!files.length){ note.textContent = 'No captures yet.'; hero.style.display='none'; return; }
-  note.style.display = 'none';
-
-  const newest = files[0];
-  document.getElementById('latest').textContent = pretty(newest.name);
-  const age = ageMin(newest.name);
-  if(age === null)      setStatus('', 'live');
-  else if(age < 8)      setStatus('live', 'live');
-  else if(age < 30)     setStatus(`last frame ${Math.round(age)} min ago`, 'stale');
-  else                  setStatus(`camera quiet — last frame ${Math.round(age)} min ago`, 'off');
-
-  if(newest.name !== lastNewest){
-    lastNewest = newest.name;
-    hero.src = newest.download_url; hero.style.display = 'block';
-    document.getElementById('herocap').textContent = 'newest: ' + pretty(newest.name);
-    document.getElementById('grid').innerHTML = files.map(f =>
-      `<figure><a href="${f.download_url}" target="_blank" rel="noopener">
-         <img loading="lazy" src="${f.download_url}"></a>
-       <figcaption>${pretty(f.name)}</figcaption></figure>`).join('');
+  if(hero.dataset.cur!==n.name){
+    hero.dataset.cur=n.name;
+    document.getElementById('heroImg').src=n.url; hero.style.display='block';
   }
+  document.getElementById('sub').textContent=`newest ${n.label}`;
+  document.getElementById('grid').innerHTML=files.map((f,i)=>
+    `<figure onclick="openLB(${i})"><img loading="lazy" src="${f.url}" alt="${f.label}">
+       <figcaption>${f.label}</figcaption></figure>`).join('');
 }
-refresh();
-setInterval(refresh, POLL_MS);
+
+function openLB(i){lbIdx=i;showLB();document.getElementById('lb').classList.add('open');}
+function closeLB(){document.getElementById('lb').classList.remove('open');}
+function stepLB(d){lbIdx=(lbIdx+d+files.length)%files.length;showLB();}
+function showLB(){const f=files[lbIdx];if(!f)return;
+  document.getElementById('lbImg').src=f.url;
+  document.getElementById('lbcap').textContent=`${f.label}  ·  ${lbIdx+1} / ${files.length}`;}
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('lb').classList.contains('open'))return;
+  if(e.key==='Escape')closeLB(); if(e.key==='ArrowLeft')stepLB(-1); if(e.key==='ArrowRight')stepLB(1);});
+
+refresh(); setInterval(refresh,POLL);
 </script>
 </body>
 </html>
