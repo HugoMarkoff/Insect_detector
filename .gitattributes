@@ -1,0 +1,18 @@
+# Keep LF line endings on everything that runs on the Raspberry Pi / Linux.
+# CRLF endings break shell scripts ("bad interpreter") and Python shebangs on
+# the Pi - this repo's ancestor needed dos2unix to work around exactly that.
+* text=auto eol=lf
+*.sh   text eol=lf
+*.py   text eol=lf
+*.service text eol=lf
+*.cpp  text eol=lf
+*.h    text eol=lf
+*.ini  text eol=lf
+*.md   text eol=lf
+*.yml  text eol=lf
+
+# Binary assets - never touch line endings.
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.hex binary
