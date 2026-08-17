@@ -56,7 +56,10 @@ echo
 read -rp "  Press Enter once you've added it… "
 
 SSH_CMD="ssh -i $KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
-if ! $SSH_CMD -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
+# `ssh -T git@github.com` always exits 1 (GitHub gives no shell), so capture its
+# output and grep the string instead of piping (which would trip `set -o pipefail`).
+KEY_TEST="$($SSH_CMD -T git@github.com 2>&1 || true)"
+if ! printf '%s' "$KEY_TEST" | grep -q "successfully authenticated"; then
     echo "ERROR: deploy key not working yet. Add it (with write access) and re-run."; exit 1
 fi
 say "Deploy key OK."
@@ -64,6 +67,8 @@ say "Deploy key OK."
 # ---- 4. publish the gallery front-end to gh-pages ----
 say "Publishing web/index.html to the gh-pages branch…"
 GP="$(mktemp -d)"; cp "$REPO_DIR/web/index.html" "$GP/index.html"
+# point the gallery at this fork's repo (no hand-editing needed)
+sed -i "s/const OWNER=\"[^\"]*\", REPO=\"[^\"]*\"/const OWNER=\"$GH_USER\", REPO=\"$GH_REPO\"/" "$GP/index.html"
 git -C "$GP" init -q
 git -C "$GP" checkout -q --orphan gh-pages
 git -C "$GP" -c user.email=cam@insect-detector.local -c user.name=insect-cam add index.html

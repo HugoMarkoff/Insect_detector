@@ -54,9 +54,9 @@ first issues are marked 🟢. Contributions welcome — see [CONTRIBUTING.md](..
 
 - [x] Setup no longer hardcodes the Pi user / repo — `rpi/setup.sh` generates the
       systemd units from `GH_USER` / `GH_REPO` / `INTERVAL` variables.
-- [ ] **Template the front-end too.** `web/index.html` still hardcodes
-      `OWNER`/`REPO` at the top; have `setup.sh` substitute these so a fork needs
-      to touch nothing by hand. 🟢
+- [x] **Template the front-end too.** `setup.sh` now substitutes `OWNER`/`REPO`
+      into `web/index.html` when publishing to gh-pages, so a fork needs to touch
+      nothing by hand.
 - [ ] Note the fixed assumptions (`I2C addr 0x08`, bus `1`, camera rotation `180`)
       in one place so they're easy to change.
 
