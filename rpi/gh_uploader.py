@@ -94,8 +94,15 @@ def build_manifest(imgdir):
         json.dump(meta, fh)
     frames = [{"name": f, "insect": meta[f]["insect"], "score": meta[f]["score"]}
               for f in sorted(files, reverse=True)]                        # newest first
+    status = {}                                                            # telemetry from timelapse.py
+    try:
+        with open(os.path.join(SRC, "status.json")) as fh:
+            status = json.load(fh)
+    except Exception:
+        pass
     manifest = {"interval": CAPTURE_INTERVAL, "count": len(frames),
-                "insects": sum(1 for f in frames if f["insect"]), "frames": frames}
+                "insects": sum(1 for f in frames if f["insect"]),
+                "status": status, "frames": frames}
     with open(os.path.join(WORK, "manifest.json"), "w") as fh:
         json.dump(manifest, fh)
 

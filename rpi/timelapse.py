@@ -46,6 +46,7 @@ PORT = 8080
 # under root, expanduser("~") would resolve to /root and the two could diverge.
 IMG_DIR = os.environ.get("TIMELAPSE_DIR", os.path.expanduser("~/timelapse_images"))
 MAX_STORED = _int_env("TIMELAPSE_MAX_STORED", 500)          # cap ~/timelapse_images (SD safety)
+STATUS_FILE = os.path.join(IMG_DIR, "status.json")          # telemetry for the gallery
 I2C_ADDR = 0x08
 IR_PIN = 0                           # CMD_SET_OUTPUT pin id 0 = IR/flash (D5)
 WIDTH, HEIGHT = 1920, 1080
@@ -87,6 +88,39 @@ def ir(on):
 def set_always_on():
     if i2c_write(0x0E, [1]):
         print("[i2c] Arduino set to always-on", flush=True)
+
+
+def i2c_read(cmd):
+    """Read one byte for an I2C command (write cmd, then read a byte back)."""
+    if not _bus_ok:
+        return None
+    try:
+        with smbus2.SMBus(1) as b:
+            b.write_byte(I2C_ADDR, cmd)
+            time.sleep(0.03)
+            return b.read_byte(I2C_ADDR)
+    except Exception:
+        return None
+
+
+def write_status():
+    """Pull battery / light / firmware from the Arduino and write status.json."""
+    import json
+    dv = i2c_read(0x13)          # battery decivolts
+    status = {
+        "ts": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "battery_pct": i2c_read(0x02),
+        "battery_v": round(dv / 10.0, 1) if dv is not None else None,
+        "light": i2c_read(0x12),          # 0-255 (higher = brighter)
+        "fw": i2c_read(0x14),
+    }
+    try:
+        with open(STATUS_FILE, "w") as f:
+            json.dump(status, f)
+    except OSError:
+        pass
+    print(f"  telemetry: {status['battery_pct']}%  {status['battery_v']}V  light={status['light']}",
+          flush=True)
 
 
 # ---- capture ----
@@ -236,6 +270,7 @@ def main():
         print(f"  {'saved ' + str(os.path.getsize(path)) + ' bytes' if ok else 'FAILED'}",
               flush=True)
         prune_old(MAX_STORED)         # bound SD usage
+        write_status()                # battery / light / fw for the gallery
         time.sleep(max(1, INTERVAL - (time.time() - start)))
 
 
