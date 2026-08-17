@@ -10,6 +10,24 @@ Part 2 (next): the domed elytra shell that lifts off the top.
 
 ![preview](preview.png)
 
+## How the real hardware mounts
+
+Measured off the actual boards:
+
+| Part | Where it goes | Why |
+|---|---|---|
+| **IR board** (batwing, ~100 × 80 mm) | **Under the floor**, on four bosses, screwed up from below | Its LEDs *and* the light sensor are on the bottom face — mounting it outside keeps them unobstructed and leaves the floor solid (one hole instead of a big window) |
+| **Camera** (Pi V2 **or** V3) | **Inside**, on 21 × 12.5 mm standoffs — only the lens pokes down through a Ø12 mm hole | V2 and V3 share the same hole pattern, so one mount fits both. Ø12 clears both lens barrels |
+| **Light sensor** | Already on the IR board | No separate window needed |
+| **Pi / trap board** | Inside, on standoffs | Dry side |
+
+The camera hole sits in the **notch at the top of the batwing** — the board's own
+cutout is the camera's line of sight. A shallow batwing-shaped recess in the
+underside locates the board so it can't rotate.
+
+> The only penetration in the floor is the Ø12 camera hole, sealed by a clear
+> disc glued into the Ø18 rebate underneath. Everything else stays watertight.
+
 ## Build it
 
 FreeCAD 1.0+ (free). Either open the script in FreeCAD's Python console, or run
@@ -25,7 +43,7 @@ solid). Current output:
 
 | Part | Size | Volume |
 |---|---|---|
-| `belly` | 100 × 140 × 43 mm | ~105 cm³ |
+| `belly` | 116 × 162 × 45 mm | ~133 cm³ |
 | `leg_segment` | 9.5 × 9.5 × 20 mm | 0.6 cm³ |
 | `foot` | 14 × 14 × 14 mm | 0.7 cm³ |
 
@@ -105,23 +123,24 @@ re-run. The ones you'll actually touch:
 | Param | What it does |
 |---|---|
 | `body_len`, `body_wid` | Overall footprint |
-| `cam_pos`, `cam_hole_d`, `cam_glass_d`, `cam_post_dx/dy` | Camera window + its mounting holes (defaults ≈ Pi Camera Module 3) |
-| `ir_pos`, `ir_hole_d`, `ir_post_dx/dy` | IR board window + mounts |
-| `ldr_pos`, `ldr_hole_d` | Light-sensor window |
+| `ir_outline`, `ir_mounts` | The batwing footprint and its screw holes — **trace your board** |
+| `cam_pos`, `cam_lens_d` | Camera lens hole (Ø12 clears V2 and V3) |
+| `disc_d`, `disc_th` | Clear sealing disc rebate |
 | `pcb_posts`, `pcb_post_h` | Main board standoffs — **set to your real hole pattern** |
 | `fit` | Leg peg tightness |
 | `skirt_th`, `skirt_gap`, `tongue_w`, `tongue_h` | The seal — part 2 must match these |
 
-> ⚠️ The optics and standoff coordinates shipped here are **placeholders**.
-> Measure your camera module, IR board and PCB holes before printing the belly.
+> ⚠️ `ir_mounts` and `pcb_posts` are still **placeholders** — measure the screw
+> holes on your IR board and Pi and set them before printing the belly. The
+> outline, camera mount and seal are dimensioned from the real hardware.
 > The legs are safe to print right now.
 
 ### Internal layout
 
-Optics sit on the floor (camera + IR on their own standoffs, separated by the
-light baffle so IR doesn't wash out the image). The main board goes **above**
-them on 17 mm posts — a mezzanine. If your board is thick, raise `pcb_post_h`
-and `rim_h` together.
+The IR board hangs **outside** under the floor. Inside, the camera sits low on
+short posts (lens reaching into its hole) inside a baffle collar that blocks IR
+glare from creeping into the lens; the Pi / trap board mounts beside it. Raise
+`rim_h` if your stack is tall.
 
 ## Still to design
 
