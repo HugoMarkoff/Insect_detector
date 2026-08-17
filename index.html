@@ -144,10 +144,11 @@
 <script>
 const OWNER="HugoMarkoff", REPO="Insect_detector", BRANCH="images";
 const RAW=`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/images/`;
-// Read the manifest from the raw CDN (raw.githubusercontent.com) - NOT the GitHub
-// API, which is rate-limited to 60 req/hr per IP and would blank the gallery.
+// Manifest sources: the GitHub API is real-time but rate-limited (60/hr per IP);
+// the raw CDN isn't rate-limited but can serve a stale copy for minutes. So try
+// the API first (fresh), and only fall back to raw if this IP is rate-limited.
+const MANIFEST_API=`https://api.github.com/repos/${OWNER}/${REPO}/contents/manifest.json?ref=${BRANCH}`;
 const MANIFEST_RAW=`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/manifest.json`;
-const LISTING=`https://api.github.com/repos/${OWNER}/${REPO}/contents/images?ref=${BRANCH}`;
 const POLL=90000;
 let frames=[], ordered=[], idx=0, playing=true, fps=8, timer=null, hasManifest=false, status={};
 
@@ -157,22 +158,21 @@ function pretty(f){const m=f.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/
 function ageMin(f){const m=f.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/);
   if(!m)return null; return (Date.now()-new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6]))/60000;}
 function setStatus(t,c){document.getElementById('status').textContent=t;document.getElementById('dot').className='dot '+c;}
+function b64json(s){return JSON.parse(decodeURIComponent(escape(atob(s.replace(/\s/g,'')))));}
 
 async function load(){
-  let fr=null;
-  try{                                   // primary: manifest via CDN (frames + insect flags)
-    const r=await fetch(MANIFEST_RAW+'?t='+Date.now(),{cache:'no-store'});
-    if(r.ok){ const m=await r.json(); fr=m.frames; status=m.status||{}; hasManifest=true; }
+  let m=null;
+  try{                                   // primary: GitHub API (real-time)
+    const r=await fetch(MANIFEST_API+'&t='+Date.now(),{cache:'no-store'});
+    if(r.ok){ const j=await r.json(); m=b64json(j.content); }
   }catch(e){}
-  if(!fr){                               // fallback: GitHub API listing (rate-limited, no flags)
-    try{ const r=await fetch(LISTING+'&t='+Date.now(),{cache:'no-store'});
-      if(!r.ok)throw 0;
-      fr=(await r.json()).filter(x=>x.type==='file'&&/\.jpg$/i.test(x.name))
-          .sort((a,b)=>a.name<b.name?1:-1).map(x=>({name:x.name,insect:false,score:0}));
-      hasManifest=false;
-    }catch(e){ if(!frames.length) setStatus('offline','off'); return; }
+  if(!m){                                // fallback: raw CDN (not rate-limited, ~min stale)
+    try{ const r=await fetch(MANIFEST_RAW+'?t='+Date.now(),{cache:'no-store'});
+      if(r.ok) m=await r.json();
+    }catch(e){}
   }
-  frames=fr;                             // newest first
+  if(!m||!m.frames){ if(!frames.length) setStatus('offline','off'); return; }
+  frames=m.frames; status=m.status||{}; hasManifest=true;   // newest first
   render();
 }
 
