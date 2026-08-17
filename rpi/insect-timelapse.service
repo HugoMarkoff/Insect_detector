@@ -1,0 +1,18 @@
+[Unit]
+Description=Insect Detector timelapse capture + live web gallery
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=tester
+Environment=TIMELAPSE_DIR=/home/tester/timelapse_images
+# Tell the Arduino to keep the Pi powered (always-on) before its ~80s gate
+# timeout; leading '-' so a transient I2C hiccup never blocks startup.
+ExecStartPre=-/usr/bin/python3 -c "import smbus2; b=smbus2.SMBus(1); b.write_i2c_block_data(0x08,0x0E,[1]); b.close()"
+ExecStart=/usr/bin/python3 /home/tester/timelapse.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,20 @@
+[Unit]
+Description=Insect Detector - push timelapse frames to GitHub Pages
+After=network-online.target insect-timelapse.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=tester
+Environment=TIMELAPSE_DIR=/home/tester/timelapse_images
+Environment=GH_OWNER=HugoMarkoff
+Environment=GH_REPO=Insect_detector
+Environment=GH_BRANCH=images
+Environment=GH_KEEP=60
+Environment=GH_UPLOAD_INTERVAL=90
+ExecStart=/usr/bin/python3 /home/tester/gh_uploader.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

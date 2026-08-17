@@ -1,0 +1,769 @@
+[12:01:43] burner started
+[12:01:43] attempt 1 on COM3
+[12:01:43] fail 1: fuses: port vanished or busy - reseat USB
+[12:01:44] attempt 2 on COM3
+[12:01:45] fail 2: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[12:01:46] attempt 3 on COM3
+[12:01:48] fail 3: fuses: no target contact - press the MISO wires and reset clip harder
+[12:01:49] attempt 4 on COM3
+[12:01:51] fail 4: fuses: no target contact - press the MISO wires and reset clip harder
+[12:01:52] attempt 5 on COM3
+[12:01:54] fail 5: fuses: no target contact - press the MISO wires and reset clip harder
+[12:01:55] attempt 6 on COM3
+[12:01:57] fail 6: fuses: no target contact - press the MISO wires and reset clip harder
+[12:01:58] attempt 7 on COM3
+[12:02:00] fail 7: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:01] attempt 8 on COM3
+[12:02:03] fail 8: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:04] attempt 9 on COM3
+[12:02:06] fail 9: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:07] attempt 10 on COM3
+[12:02:10] fail 10: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:11] attempt 11 on COM3
+[12:02:13] fail 11: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:14] attempt 12 on COM3
+[12:02:16] fail 12: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:17] attempt 13 on COM3
+[12:02:19] fail 13: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:20] attempt 14 on COM3
+[12:02:22] fail 14: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:23] attempt 15 on COM3
+[12:02:25] fail 15: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:26] attempt 16 on COM3
+[12:02:28] fail 16: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:29] attempt 17 on COM3
+[12:02:32] fail 17: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:33] attempt 18 on COM3
+[12:02:35] fail 18: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:36] attempt 19 on COM3
+[12:02:38] fail 19: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:39] attempt 20 on COM3
+[12:02:41] fail 20: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:42] attempt 21 on COM3
+[12:02:44] fail 21: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:45] attempt 22 on COM3
+[12:02:47] fail 22: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:48] attempt 23 on COM3
+[12:02:50] fail 23: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:51] attempt 24 on COM3
+[12:02:53] fail 24: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:54] attempt 25 on COM3
+[12:02:56] fail 25: fuses: no target contact - press the MISO wires and reset clip harder
+[12:02:57] attempt 26 on COM3
+[12:03:00] fail 26: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:01] attempt 27 on COM3
+[12:03:03] fail 27: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:04] attempt 28 on COM3
+[12:03:06] fail 28: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:07] attempt 29 on COM3
+[12:03:09] fail 29: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:10] attempt 30 on COM3
+[12:03:12] fail 30: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:13] attempt 31 on COM3
+[12:03:15] fail 31: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:16] attempt 32 on COM3
+[12:03:18] fail 32: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:19] attempt 33 on COM3
+[12:03:21] fail 33: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:22] attempt 34 on COM3
+[12:03:24] fail 34: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:25] attempt 35 on COM3
+[12:03:28] fail 35: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:29] attempt 36 on COM3
+[12:03:31] fail 36: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:32] attempt 37 on COM3
+[12:03:34] fail 37: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:35] attempt 38 on COM3
+[12:03:37] fail 38: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:38] attempt 39 on COM3
+[12:03:40] fail 39: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:41] attempt 40 on COM3
+[12:03:43] fail 40: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:44] attempt 41 on COM3
+[12:03:46] fail 41: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:47] attempt 42 on COM3
+[12:03:49] fail 42: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:50] attempt 43 on COM3
+[12:03:53] fail 43: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:54] attempt 44 on COM3
+[12:03:56] fail 44: fuses: no target contact - press the MISO wires and reset clip harder
+[12:03:57] attempt 45 on COM3
+[12:03:59] fail 45: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:00] attempt 46 on COM3
+[12:04:02] fail 46: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:03] attempt 47 on COM3
+[12:04:05] fail 47: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:06] attempt 48 on COM3
+[12:04:08] fail 48: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:09] attempt 49 on COM3
+[12:04:11] fail 49: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:12] attempt 50 on COM3
+[12:04:14] fail 50: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:15] attempt 51 on COM3
+[12:04:17] fail 51: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:18] attempt 52 on COM3
+[12:04:21] fail 52: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:22] attempt 53 on COM3
+[12:04:24] fail 53: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:25] attempt 54 on COM3
+[12:04:27] fail 54: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:28] attempt 55 on COM3
+[12:04:30] fail 55: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:31] attempt 56 on COM3
+[12:04:33] fail 56: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:34] attempt 57 on COM3
+[12:04:36] fail 57: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:37] attempt 58 on COM3
+[12:04:39] fail 58: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:40] attempt 59 on COM3
+[12:04:42] fail 59: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:43] attempt 60 on COM3
+[12:04:46] fail 60: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:47] attempt 61 on COM3
+[12:04:49] fail 61: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:50] attempt 62 on COM3
+[12:04:52] fail 62: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:53] attempt 63 on COM3
+[12:04:55] fail 63: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:56] attempt 64 on COM3
+[12:04:58] fail 64: fuses: no target contact - press the MISO wires and reset clip harder
+[12:04:59] attempt 65 on COM3
+[12:05:01] fail 65: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:02] attempt 66 on COM3
+[12:05:04] fail 66: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:05] attempt 67 on COM3
+[12:05:07] fail 67: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:08] attempt 68 on COM3
+[12:05:10] fail 68: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:11] attempt 69 on COM3
+[12:05:14] fail 69: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:15] attempt 70 on COM3
+[12:05:17] fail 70: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:18] attempt 71 on COM3
+[12:05:20] fail 71: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:21] attempt 72 on COM3
+[12:05:23] fail 72: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:24] attempt 73 on COM3
+[12:05:26] fail 73: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:27] attempt 74 on COM3
+[12:05:29] fail 74: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:30] attempt 75 on COM3
+[12:05:32] fail 75: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:33] attempt 76 on COM3
+[12:05:35] fail 76: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:36] attempt 77 on COM3
+[12:05:38] fail 77: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:39] attempt 78 on COM3
+[12:05:42] fail 78: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:43] attempt 79 on COM3
+[12:05:45] fail 79: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:46] attempt 80 on COM3
+[12:05:48] fail 80: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:49] attempt 81 on COM3
+[12:05:51] fail 81: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:52] attempt 82 on COM3
+[12:05:54] fail 82: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:55] attempt 83 on COM3
+[12:05:57] fail 83: fuses: no target contact - press the MISO wires and reset clip harder
+[12:05:58] attempt 84 on COM3
+[12:06:00] fail 84: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:01] attempt 85 on COM3
+[12:06:03] fail 85: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[12:06:04] attempt 86 on COM3
+[12:06:06] fail 86: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:07] attempt 87 on COM3
+[12:06:09] fail 87: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:10] attempt 88 on COM3
+[12:06:12] fail 88: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:13] attempt 89 on COM3
+[12:06:15] fail 89: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:16] attempt 90 on COM3
+[12:06:19] fail 90: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:20] attempt 91 on COM3
+[12:06:22] fail 91: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:23] attempt 92 on COM3
+[12:06:25] fail 92: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:26] attempt 93 on COM3
+[12:06:28] fail 93: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:29] attempt 94 on COM3
+[12:06:31] fail 94: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:32] attempt 95 on COM3
+[12:06:34] fail 95: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:35] attempt 96 on COM3
+[12:06:37] fail 96: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:38] attempt 97 on COM3
+[12:06:40] fail 97: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:41] attempt 98 on COM3
+[12:06:43] fail 98: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:44] attempt 99 on COM3
+[12:06:47] fail 99: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:48] attempt 100 on COM3
+[12:06:50] fail 100: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:51] attempt 101 on COM3
+[12:06:53] fail 101: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:54] attempt 102 on COM3
+[12:06:56] fail 102: fuses: no target contact - press the MISO wires and reset clip harder
+[12:06:57] attempt 103 on COM3
+[12:06:59] fail 103: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:00] attempt 104 on COM3
+[12:07:02] fail 104: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:03] attempt 105 on COM3
+[12:07:05] fail 105: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:06] attempt 106 on COM3
+[12:07:08] fail 106: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:09] attempt 107 on COM3
+[12:07:12] fail 107: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:13] attempt 108 on COM3
+[12:07:15] fail 108: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:16] attempt 109 on COM3
+[12:07:18] fail 109: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:19] attempt 110 on COM3
+[12:07:21] fail 110: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:22] attempt 111 on COM3
+[12:07:24] fail 111: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:25] attempt 112 on COM3
+[12:07:27] fail 112: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:28] attempt 113 on COM3
+[12:07:30] fail 113: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:31] attempt 114 on COM3
+[12:07:33] fail 114: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:34] attempt 115 on COM3
+[12:07:37] fail 115: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:38] attempt 116 on COM3
+[12:07:40] fail 116: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:41] attempt 117 on COM3
+[12:07:43] fail 117: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:44] attempt 118 on COM3
+[12:07:46] fail 118: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:47] attempt 119 on COM3
+[12:07:49] fail 119: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:50] attempt 120 on COM3
+[12:07:52] fail 120: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:53] attempt 121 on COM3
+[12:07:55] fail 121: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:56] attempt 122 on COM3
+[12:07:58] fail 122: fuses: no target contact - press the MISO wires and reset clip harder
+[12:07:59] attempt 123 on COM3
+[12:08:02] fail 123: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:03] attempt 124 on COM3
+[12:08:05] fail 124: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:06] attempt 125 on COM3
+[12:08:08] fail 125: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:09] attempt 126 on COM3
+[12:08:11] fail 126: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:12] attempt 127 on COM3
+[12:08:14] fail 127: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:15] attempt 128 on COM3
+[12:08:17] fail 128: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:18] attempt 129 on COM3
+[12:08:20] fail 129: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:21] attempt 130 on COM3
+[12:08:23] fail 130: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:24] attempt 131 on COM3
+[12:08:26] fail 131: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:28] attempt 132 on COM3
+[12:08:30] fail 132: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:31] attempt 133 on COM3
+[12:08:33] fail 133: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:34] attempt 134 on COM3
+[12:08:36] fail 134: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:37] attempt 135 on COM3
+[12:08:39] fail 135: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:40] attempt 136 on COM3
+[12:08:42] fail 136: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:43] attempt 137 on COM3
+[12:08:45] fail 137: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:46] attempt 138 on COM3
+[12:08:48] fail 138: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:49] attempt 139 on COM3
+[12:08:52] fail 139: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:53] attempt 140 on COM3
+[12:08:55] fail 140: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:56] attempt 141 on COM3
+[12:08:58] fail 141: fuses: no target contact - press the MISO wires and reset clip harder
+[12:08:59] attempt 142 on COM3
+[12:09:01] fail 142: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:02] attempt 143 on COM3
+[12:09:04] fail 143: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:05] attempt 144 on COM3
+[12:09:07] fail 144: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:08] attempt 145 on COM3
+[12:09:10] fail 145: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:11] attempt 146 on COM3
+[12:09:13] fail 146: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:14] attempt 147 on COM3
+[12:09:17] fail 147: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:18] attempt 148 on COM3
+[12:09:20] fail 148: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:21] attempt 149 on COM3
+[12:09:23] fail 149: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:24] attempt 150 on COM3
+[12:09:26] fail 150: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:27] attempt 151 on COM3
+[12:09:29] fail 151: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:30] attempt 152 on COM3
+[12:09:32] fail 152: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:33] attempt 153 on COM3
+[12:09:35] fail 153: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:36] attempt 154 on COM3
+[12:09:38] fail 154: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:39] attempt 155 on COM3
+[12:09:42] fail 155: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:43] attempt 156 on COM3
+[12:09:45] fail 156: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:46] attempt 157 on COM3
+[12:09:48] fail 157: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:49] attempt 158 on COM3
+[12:09:51] fail 158: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:52] attempt 159 on COM3
+[12:09:54] fail 159: fuses: no target contact - press the MISO wires and reset clip harder
+[12:09:55] attempt 160 on COM3
+[12:09:57] fail 160: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[12:10:35] attempt 161 on COM3
+[12:10:37] fail 161: fuses: no target contact - press the MISO wires and reset clip harder
+[12:10:38] attempt 162 on COM3
+[12:10:40] fail 162: fuses: no target contact - press the MISO wires and reset clip harder
+[12:10:41] attempt 163 on COM3
+[12:10:43] fail 163: fuses: no target contact - press the MISO wires and reset clip harder
+[12:10:44] attempt 164 on COM3
+[12:10:46] fail 164: fuses: no target contact - press the MISO wires and reset clip harder
+[12:10:47] attempt 165 on COM3
+[12:10:49] fail 165: fuses: no target contact - press the MISO wires and reset clip harder
+[12:10:50] attempt 166 on COM3
+[12:10:52] fail 166: fuses: no target contact - press the MISO wires and reset clip harder
+[12:10:53] attempt 167 on COM3
+[12:10:56] fail 167: fuses: no target contact - press the MISO wires and reset clip harder
+[12:10:57] attempt 168 on COM3
+[12:10:59] fail 168: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:00] attempt 169 on COM3
+[12:11:02] fail 169: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:03] attempt 170 on COM3
+[12:11:05] fail 170: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:06] attempt 171 on COM3
+[12:11:08] fail 171: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:09] attempt 172 on COM3
+[12:11:11] fail 172: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:12] attempt 173 on COM3
+[12:11:14] fail 173: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:15] attempt 174 on COM3
+[12:11:17] fail 174: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:18] attempt 175 on COM3
+[12:11:20] fail 175: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:21] attempt 176 on COM3
+[12:11:24] fail 176: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:25] attempt 177 on COM3
+[12:11:27] fail 177: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:28] attempt 178 on COM3
+[12:11:30] fail 178: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:31] attempt 179 on COM3
+[12:11:33] fail 179: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:34] attempt 180 on COM3
+[12:11:36] fail 180: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:37] attempt 181 on COM3
+[12:11:39] fail 181: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:40] attempt 182 on COM3
+[12:11:42] fail 182: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:43] attempt 183 on COM3
+[12:11:45] fail 183: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:46] attempt 184 on COM3
+[12:11:49] fail 184: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:50] attempt 185 on COM3
+[12:11:52] fail 185: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:53] attempt 186 on COM3
+[12:11:55] fail 186: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:56] attempt 187 on COM3
+[12:11:58] fail 187: fuses: no target contact - press the MISO wires and reset clip harder
+[12:11:59] attempt 188 on COM3
+[12:12:01] fail 188: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:02] attempt 189 on COM3
+[12:12:04] fail 189: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:05] attempt 190 on COM3
+[12:12:07] fail 190: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:08] attempt 191 on COM3
+[12:12:10] fail 191: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:11] attempt 192 on COM3
+[12:12:14] fail 192: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:15] attempt 193 on COM3
+[12:12:17] fail 193: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:18] attempt 194 on COM3
+[12:12:20] fail 194: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:21] attempt 195 on COM3
+[12:12:23] fail 195: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:24] attempt 196 on COM3
+[12:12:26] fail 196: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:27] attempt 197 on COM3
+[12:12:29] fail 197: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:30] attempt 198 on COM3
+[12:12:32] fail 198: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:33] attempt 199 on COM3
+[12:12:35] fail 199: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:36] attempt 200 on COM3
+[12:12:39] fail 200: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:40] attempt 201 on COM3
+[12:12:42] fail 201: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:43] attempt 202 on COM3
+[12:12:45] fail 202: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:46] attempt 203 on COM3
+[12:12:48] fail 203: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:49] attempt 204 on COM3
+[12:12:51] fail 204: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:52] attempt 205 on COM3
+[12:12:54] fail 205: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:55] attempt 206 on COM3
+[12:12:57] fail 206: fuses: no target contact - press the MISO wires and reset clip harder
+[12:12:58] attempt 207 on COM3
+[12:13:00] fail 207: fuses: no target contact - press the MISO wires and reset clip harder
+[12:13:01] attempt 208 on COM3
+[12:13:04] fail 208: fuses: no target contact - press the MISO wires and reset clip harder
+[12:13:05] attempt 209 on COM3
+[12:13:07] fail 209: fuses: no target contact - press the MISO wires and reset clip harder
+[12:13:08] attempt 210 on COM3
+[12:13:10] fail 210: fuses: no target contact - press the MISO wires and reset clip harder
+[12:13:11] attempt 211 on COM3
+[12:13:13] fail 211: fuses: no target contact - press the MISO wires and reset clip harder
+[12:13:14] attempt 212 on COM3
+[12:13:16] fail 212: fuses: no target contact - press the MISO wires and reset clip harder
+[12:13:17] attempt 213 on COM3
+[12:13:19] fail 213: fuses: no target contact - press the MISO wires and reset clip harder
+[12:13:20] attempt 214 on COM3
+[12:13:22] fail 214: fuses: no target contact - press the MISO wires and reset clip harder
+[12:13:23] attempt 215 on COM3
+[12:13:26] fail 215: fuses: no target contact - press the MISO wires and reset clip harder
+[12:13:27] attempt 216 on COM3
+[12:13:29] fail 216: fuses: no target contact - press the MISO wires and reset clip harder
+[12:13:30] attempt 217 on COM3
+[12:13:32] fail 217: fuses: no target contact - press the MISO wires and reset clip harder
+[12:13:33] attempt 218 on COM3
+[12:13:34] fail 218: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[12:13:39] attempt 219 on COM3
+[12:13:41] fail 219: fuses: no target contact - press the MISO wires and reset clip harder
+[12:13:42] attempt 220 on COM3
+[12:13:42] fail 220: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[12:13:44] attempt 221 on COM3
+[12:13:46] fail 221: fuses: no target contact - press the MISO wires and reset clip harder
+[12:13:47] attempt 222 on COM3
+[12:13:49] fail 222: fuses: no target contact - press the MISO wires and reset clip harder
+[12:13:50] attempt 223 on COM3
+[12:13:52] fail 223: fuses: no target contact - press the MISO wires and reset clip harder
+[12:13:53] attempt 224 on COM3
+[12:13:55] fail 224: fuses: no target contact - press the MISO wires and reset clip harder
+[12:13:56] attempt 225 on COM3
+[12:13:58] fail 225: fuses: no target contact - press the MISO wires and reset clip harder
+[12:13:59] attempt 226 on COM3
+[12:14:01] fail 226: fuses: no target contact - press the MISO wires and reset clip harder
+[12:14:02] attempt 227 on COM3
+[12:14:04] fail 227: fuses: no target contact - press the MISO wires and reset clip harder
+[12:14:05] attempt 228 on COM3
+[12:14:08] fail 228: fuses: no target contact - press the MISO wires and reset clip harder
+[12:14:09] attempt 229 on COM3
+[12:14:11] fail 229: fuses: no target contact - press the MISO wires and reset clip harder
+[12:14:12] attempt 230 on COM3
+[12:14:14] fail 230: fuses: no target contact - press the MISO wires and reset clip harder
+[12:14:15] attempt 231 on COM3
+[12:14:17] fail 231: fuses: no target contact - press the MISO wires and reset clip harder
+[12:14:21] attempt 232 on COM3
+[12:14:21] fail 232: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[12:14:22] attempt 233 on COM3
+[12:14:23] fail 233: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[12:14:24] attempt 234 on COM3
+[12:14:26] fail 234: fuses: no target contact - press the MISO wires and reset clip harder
+[12:14:27] attempt 235 on COM3
+[12:14:29] fail 235: fuses: no target contact - press the MISO wires and reset clip harder
+[12:14:30] attempt 236 on COM3
+[12:14:32] fail 236: fuses: no target contact - press the MISO wires and reset clip harder
+[12:14:33] attempt 237 on COM3
+[12:14:35] fail 237: fuses: no target contact - press the MISO wires and reset clip harder
+[12:14:36] attempt 238 on COM3
+[12:14:37] fail 238: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[12:14:38] attempt 239 on COM3
+[12:14:40] fail 239: fuses: no target contact - press the MISO wires and reset clip harder
+[12:14:41] attempt 240 on COM3
+[12:14:43] fail 240: fuses: no target contact - press the MISO wires and reset clip harder
+[12:14:44] attempt 241 on COM3
+[12:14:47] fail 241: fuses: no target contact - press the MISO wires and reset clip harder
+[12:14:48] attempt 242 on COM3
+[12:14:50] fail 242: fuses: no target contact - press the MISO wires and reset clip harder
+[12:14:51] attempt 243 on COM3
+[12:14:53] fail 243: fuses: no target contact - press the MISO wires and reset clip harder
+[12:14:54] attempt 244 on COM3
+[12:14:56] fail 244: fuses: no target contact - press the MISO wires and reset clip harder
+[12:14:57] attempt 245 on COM3
+[12:14:59] fail 245: fuses: no target contact - press the MISO wires and reset clip harder
+[12:15:00] attempt 246 on COM3
+[12:15:02] fail 246: fuses: no target contact - press the MISO wires and reset clip harder
+[12:15:03] attempt 247 on COM3
+[12:15:05] fail 247: fuses: no target contact - press the MISO wires and reset clip harder
+[12:15:06] attempt 248 on COM3
+[12:15:08] fail 248: fuses: no target contact - press the MISO wires and reset clip harder
+[12:15:09] attempt 249 on COM3
+[12:15:11] fail 249: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[12:15:12] attempt 250 on COM3
+[12:15:14] fail 250: fuses: no target contact - press the MISO wires and reset clip harder
+[12:15:15] attempt 251 on COM3
+[12:15:17] fail 251: fuses: no target contact - press the MISO wires and reset clip harder
+[12:15:18] attempt 252 on COM3
+[12:15:20] fail 252: fuses: no target contact - press the MISO wires and reset clip harder
+[12:15:21] attempt 253 on COM3
+[12:15:24] fail 253: fuses: no target contact - press the MISO wires and reset clip harder
+[12:15:25] attempt 254 on COM3
+[12:15:26] fail 254: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[12:15:27] attempt 255 on COM3
+[12:15:29] fail 255: fuses: no target contact - press the MISO wires and reset clip harder
+[12:15:30] attempt 256 on COM3
+[12:15:32] fail 256: fuses: no target contact - press the MISO wires and reset clip harder
+[12:15:33] attempt 257 on COM3
+[12:15:34] fail 257: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[12:15:35] attempt 258 on COM3
+[12:15:37] fail 258: fuses: no target contact - press the MISO wires and reset clip harder
+[12:15:38] attempt 259 on COM3
+[12:15:40] fail 259: fuses: no target contact - press the MISO wires and reset clip harder
+[12:15:41] attempt 260 on COM3
+[12:15:43] fail 260: fuses: no target contact - press the MISO wires and reset clip harder
+[12:15:44] attempt 261 on COM3
+[12:15:46] fail 261: fuses: no target contact - press the MISO wires and reset clip harder
+[12:15:47] attempt 262 on COM3
+[12:15:49] fail 262: fuses: no target contact - press the MISO wires and reset clip harder
+[12:15:50] attempt 263 on COM3
+[12:15:53] fail 263: fuses: no target contact - press the MISO wires and reset clip harder
+[12:15:54] attempt 264 on COM3
+[12:15:56] fail 264: fuses: no target contact - press the MISO wires and reset clip harder
+[12:15:57] attempt 265 on COM3
+[12:15:59] fail 265: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:00] attempt 266 on COM3
+[12:16:02] fail 266: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:03] attempt 267 on COM3
+[12:16:05] fail 267: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:06] attempt 268 on COM3
+[12:16:08] fail 268: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:09] attempt 269 on COM3
+[12:16:11] fail 269: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:12] attempt 270 on COM3
+[12:16:14] fail 270: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:15] attempt 271 on COM3
+[12:16:18] fail 271: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:19] attempt 272 on COM3
+[12:16:21] fail 272: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:22] attempt 273 on COM3
+[12:16:24] fail 273: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:25] attempt 274 on COM3
+[12:16:27] fail 274: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:28] attempt 275 on COM3
+[12:16:30] fail 275: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:31] attempt 276 on COM3
+[12:16:33] fail 276: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:34] attempt 277 on COM3
+[12:16:36] fail 277: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:37] attempt 278 on COM3
+[12:16:39] fail 278: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:40] attempt 279 on COM3
+[12:16:40] fail 279: fuses: port vanished or busy - reseat USB
+[12:16:41] attempt 280 on COM3
+[12:16:44] fail 280: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:45] attempt 281 on COM3
+[12:16:47] fail 281: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:48] attempt 282 on COM3
+[12:16:50] fail 282: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:51] attempt 283 on COM3
+[12:16:53] fail 283: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:54] attempt 284 on COM3
+[12:16:56] fail 284: fuses: no target contact - press the MISO wires and reset clip harder
+[12:16:58] attempt 285 on COM3
+[12:17:00] fail 285: fuses: no target contact - press the MISO wires and reset clip harder
+[12:17:01] attempt 286 on COM3
+[12:17:03] fail 286: fuses: no target contact - press the MISO wires and reset clip harder
+[12:17:04] attempt 287 on COM3
+[12:17:06] fail 287: fuses: no target contact - press the MISO wires and reset clip harder
+[12:17:07] attempt 288 on COM3
+[12:17:09] fail 288: fuses: no target contact - press the MISO wires and reset clip harder
+[12:17:10] attempt 289 on COM3
+[12:17:12] fail 289: fuses: unexpected: ...0xff0000 | avrdude error: expected signature for ATmega328P is 1E 95 0F |         double check chip or use -F to override this check | avrdude done.  Thank you.
+[12:17:13] attempt 290 on COM3
+[12:17:15] fail 290: fuses: unexpected: ...0xff00ff | avrdude error: expected signature for ATmega328P is 1E 95 0F |         double check chip or use -F to override this check | avrdude done.  Thank you.
+[12:17:16] attempt 291 on COM3
+[12:17:18] fail 291: fuses: unexpected: ...0x0000ff | avrdude error: expected signature for ATmega328P is 1E 95 0F |         double check chip or use -F to override this check | avrdude done.  Thank you.
+[12:17:19] attempt 292 on COM3
+[12:17:20] fail 292: fuses: unexpected: ...0xffff00 | avrdude error: expected signature for ATmega328P is 1E 95 0F |         double check chip or use -F to override this check | avrdude done.  Thank you.
+[12:17:21] attempt 293 on COM3
+[12:17:24] fail 293: fuses: no target contact - press the MISO wires and reset clip harder
+[12:17:25] attempt 294 on COM3
+[12:17:26] fail 294: fuses: unexpected: ...0x00ff00 | avrdude error: expected signature for ATmega328P is 1E 95 0F |         double check chip or use -F to override this check | avrdude done.  Thank you.
+[12:17:27] attempt 295 on COM3
+[12:17:30] fail 295: fuses: no target contact - press the MISO wires and reset clip harder
+[12:17:31] attempt 296 on COM3
+[12:17:32] fail 296: fuses: unexpected: ...0x0000ff | avrdude error: expected signature for ATmega328P is 1E 95 0F |         double check chip or use -F to override this check | avrdude done.  Thank you.
+[12:17:33] attempt 297 on COM3
+[12:17:35] fail 297: fuses: unexpected: ...0x00ffff | avrdude error: expected signature for ATmega328P is 1E 95 0F |         double check chip or use -F to override this check | avrdude done.  Thank you.
+[12:17:36] attempt 298 on COM3
+[12:17:38] fail 298: fuses: unexpected: ...0x0000ff | avrdude error: expected signature for ATmega328P is 1E 95 0F |         double check chip or use -F to override this check | avrdude done.  Thank you.
+[12:17:39] attempt 299 on COM3
+[12:17:41] fail 299: fuses: unexpected: ...0xffff00 | avrdude error: expected signature for ATmega328P is 1E 95 0F |         double check chip or use -F to override this check | avrdude done.  Thank you.
+[12:17:42] attempt 300 on COM3
+[12:17:43] fail 300: fuses: unexpected: ...0x0000ff | avrdude error: expected signature for ATmega328P is 1E 95 0F |         double check chip or use -F to override this check | avrdude done.  Thank you.
+[12:17:44] attempt 301 on COM3
+[12:17:46] fail 301: fuses: no target contact - press the MISO wires and reset clip harder
+[12:17:47] attempt 302 on COM3
+[12:17:50] fail 302: fuses: no target contact - press the MISO wires and reset clip harder
+[12:17:51] attempt 303 on COM3
+[12:17:53] fail 303: fuses: no target contact - press the MISO wires and reset clip harder
+[12:17:54] attempt 304 on COM3
+[12:17:56] fail 304: fuses: no target contact - press the MISO wires and reset clip harder
+[12:22:00] burner started
+[12:22:00] attempt 1 on COM3
+[12:22:02] fail 1: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[12:22:03] attempt 2 on COM3
+[12:22:06] fail 2: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[12:22:07] attempt 3 on COM3
+[12:22:09] fail 3: fuses: target reads 0x000000, 0x0000ff - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[12:22:10] attempt 4 on COM3
+[12:22:11] fail 4: fuses: target reads 0xff0000 - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[12:22:12] attempt 5 on COM3
+[12:22:14] fail 5: fuses: target reads 0x00ff00 - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[12:22:15] attempt 6 on COM3
+[12:22:20] SUCCESS after 6 attempts
+[14:30:34] burner started
+[14:30:34] attempt 1 on COM3
+[14:30:57] fail 1: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[14:31:00] attempt 2 on COM3
+[14:32:14] fail 2: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[14:32:15] attempt 3 on COM3
+[14:32:17] fail 3: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[14:32:19] attempt 4 on COM3
+[14:32:19] fail 4: fuses: port vanished or busy - reseat USB
+[14:32:21] attempt 5 on COM3
+[14:32:42] fail 5: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[14:32:43] attempt 6 on COM3
+[14:32:49] fail 6: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[14:32:50] attempt 7 on COM3
+[14:32:51] fail 7: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[14:32:57] attempt 8 on COM3
+[14:32:59] fail 8: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:33:00] attempt 9 on COM3
+[14:33:02] fail 9: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:33:03] attempt 10 on COM3
+[14:33:08] SUCCESS board 1 after 10 attempts
+[14:34:47] attempt 1 on COM3
+[14:34:50] fail 1: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:34:51] attempt 2 on COM3
+[14:34:53] fail 2: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:34:54] attempt 3 on COM3
+[14:34:56] fail 3: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:34:57] attempt 4 on COM3
+[14:34:59] fail 4: fuses: target reads 0x00ff00 - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:35:00] attempt 5 on COM3
+[14:35:01] fail 5: fuses: target reads 0x0000ff - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:35:02] attempt 6 on COM3
+[14:35:04] fail 6: fuses: target reads 0x00ff00 - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:35:05] attempt 7 on COM3
+[14:35:07] fail 7: fuses: target reads 0x0000ff - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:35:08] attempt 8 on COM3
+[14:35:10] fail 8: fuses: target reads 0x00ffff - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:35:11] attempt 9 on COM3
+[14:35:13] fail 9: fuses: target reads 0xffffff - chip NOT held in reset (is the clip on the pair that beeps to GND? move it to the other pair) or MISO floating
+[14:35:14] attempt 10 on COM3
+[14:35:16] fail 10: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:35:17] attempt 11 on COM3
+[14:35:19] fail 11: fuses: target reads 0xff0000 - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:35:20] attempt 12 on COM3
+[14:35:22] fail 12: fuses: target reads 0xffffff - chip NOT held in reset (is the clip on the pair that beeps to GND? move it to the other pair) or MISO floating
+[14:35:23] attempt 13 on COM3
+[14:35:25] fail 13: fuses: target reads 0x0000ff - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:35:26] attempt 14 on COM3
+[14:35:27] fail 14: fuses: target reads 0x00ffff - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:35:28] attempt 15 on COM3
+[14:35:30] fail 15: fuses: target reads 0x00ff00 - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:35:31] attempt 16 on COM3
+[14:35:33] fail 16: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:35:34] attempt 17 on COM3
+[14:35:37] fail 17: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:35:38] attempt 18 on COM3
+[14:35:40] fail 18: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:35:41] attempt 19 on COM3
+[14:35:43] fail 19: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:35:44] attempt 20 on COM3
+[14:35:46] fail 20: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:35:47] attempt 21 on COM3
+[14:35:52] SUCCESS board 2 after 21 attempts
+[14:37:27] attempt 1 on COM3
+[14:37:30] fail 1: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:37:31] attempt 2 on COM3
+[14:37:31] fail 2: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[14:37:32] attempt 3 on COM3
+[14:37:34] fail 3: fuses: target reads 0x00ffff - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:37:35] attempt 4 on COM3
+[14:37:37] fail 4: fuses: target reads 0xff0000 - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:37:38] attempt 5 on COM3
+[14:37:40] fail 5: fuses: target reads 0xff0000 - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:37:41] attempt 6 on COM3
+[14:37:42] fail 6: fuses: target reads 0xff0000 - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:37:43] attempt 7 on COM3
+[14:37:48] SUCCESS board 3 after 7 attempts
+[14:38:31] attempt 1 on COM3
+[14:38:33] fail 1: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:38:34] attempt 2 on COM3
+[14:38:36] fail 2: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:38:37] attempt 3 on COM3
+[14:38:39] fail 3: fuses: target reads 0xffff00 - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:38:40] attempt 4 on COM3
+[14:38:41] fail 4: fuses: target reads 0x00ffff - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:38:42] attempt 5 on COM3
+[14:38:46] fail 5: bootloader: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[14:38:47] attempt 6 on COM3
+[14:38:49] fail 6: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:38:50] attempt 7 on COM3
+[14:38:51] fail 7: fuses: programmer not answering - adapter ok? master powered? DTR wire unplugged?
+[14:38:52] attempt 8 on COM3
+[14:38:54] fail 8: fuses: target reads 0xffff00 - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:38:55] attempt 9 on COM3
+[14:38:57] fail 9: fuses: target answered 0xfffb00 (expected 0x1e950f for ATmega328P) - half-working contact, press steadier / check leg
+[14:38:58] attempt 10 on COM3
+[14:39:00] fail 10: fuses: target reads 0xffff00 - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:39:01] attempt 11 on COM3
+[14:39:05] SUCCESS board 4 after 11 attempts
+[14:40:13] attempt 1 on COM3
+[14:40:15] fail 1: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:40:16] attempt 2 on COM3
+[14:40:19] fail 2: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:40:20] attempt 3 on COM3
+[14:40:22] fail 3: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:40:23] attempt 4 on COM3
+[14:40:25] fail 4: fuses: target reads 0x00ffff - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:40:26] attempt 5 on COM3
+[14:40:27] fail 5: fuses: target reads 0xff0000 - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:40:28] attempt 6 on COM3
+[14:40:33] SUCCESS board 5 after 6 attempts
+[14:41:31] attempt 1 on COM3
+[14:41:33] fail 1: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:41:34] attempt 2 on COM3
+[14:41:36] fail 2: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:41:37] attempt 3 on COM3
+[14:41:39] fail 3: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:41:40] attempt 4 on COM3
+[14:41:42] fail 4: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:41:43] attempt 5 on COM3
+[14:41:45] fail 5: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:41:46] attempt 6 on COM3
+[14:41:51] SUCCESS board 6 after 6 attempts
+[14:42:32] attempt 1 on COM3
+[14:42:34] fail 1: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:42:35] attempt 2 on COM3
+[14:42:37] fail 2: fuses: target reads 0x00ffff - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:42:38] attempt 3 on COM3
+[14:42:40] fail 3: fuses: target reads 0xffff00 - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:42:41] attempt 4 on COM3
+[14:42:45] SUCCESS board 7 after 4 attempts
+[14:43:18] attempt 1 on COM3
+[14:43:20] fail 1: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:43:21] attempt 2 on COM3
+[14:43:23] fail 2: fuses: target reads 0x000000 every time - dead line: target unpowered (PIR pins 1+2 wires) or MISO not touching at all
+[14:43:24] attempt 3 on COM3
+[14:43:27] fail 3: fuses: target reads 0x000000, 0xffff00 - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:43:28] attempt 4 on COM3
+[14:43:29] fail 4: fuses: target reads 0xffff00 - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:43:30] attempt 5 on COM3
+[14:43:32] fail 5: fuses: target reads 0x0000ff - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:43:33] attempt 6 on COM3
+[14:43:35] fail 6: fuses: target reads 0x0000ff - MISO garbage: wobbly wire or WRONG LEG. Beep-check both boards: PIR pin 6 <-> leg 15, PIR pin 5 <-> leg 17; MISO is the corner leg between them
+[14:43:36] attempt 7 on COM3
+[14:43:38] fail 7: fuses: contact glitch mid-write - hold steadier, retrying
+[14:43:39] attempt 8 on COM3
+[14:43:43] SUCCESS board 8 after 8 attempts

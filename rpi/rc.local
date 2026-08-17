@@ -1,0 +1,6 @@
+#!/bin/bash
+# Original Firebase flow (camera.sh + main.py) removed. The timelapse capture
+# loop + live web gallery now run as a systemd service: insect-timelapse.service
+# (which also sends the Arduino always-on command on start).
+# Backup of the original Firebase rc.local: /etc/rc.local.firebase.bak
+exit 0
