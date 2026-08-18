@@ -23,9 +23,9 @@ Everything lives **inside** the body. Measured off the actual boards:
 
 | Part | Where it goes | How |
 |---|---|---|
-| **IR board** (batwing X, 81 × 98.4 — exact from the PcbDoc) | **Flush on the floor** — two M3 screws through its real holes (0,−6.5)/(0,−29.1) into floor pilots clamp it down | The floor has **wing-shaped windows that the LED fields fill tightly** — only the diode zones and the light sensor are open. The centre strip (logo, mount holes, the JST pins, the sensor legs) stays over solid floor, and the board **seals its own opening**: LEDs drop into the windows, the sensor into its hole, the JST pin fields into through-pockets. Silicone/foam on the strip makes it airtight |
+| **IR board** (batwing X, 81 × 98.4 — exact from the PcbDoc) | Drops into a **1.8 mm batwing recess** (~1 mm slack) onto **two printed pins** through its real holes (0,−6.5)/(0,−29.1) — no screws, lifts straight off | The floor has **wing-shaped windows that the LED fields fill tightly** — only the diode zones and the light sensor are open. The centre strip (logo, mount holes, the JST pins, the sensor legs) stays over solid floor, and the board **seals its own opening**: LEDs drop into the windows, the sensor into its hole, the JST pin fields into through-pockets. Silicone/foam on the strip makes it airtight |
 | **Light sensor** (VT90N1 at (0,+6.3) — from the PcbDoc) | Its own **rectangular window (6.2 × 5.2)** matching the CdS cell's body | Reads ambient light straight down |
-| **Camera** (Pi V2 **or** V3 — same 25 × 24 board, 21 × 12.5 holes) | **Flush in a 1.2 mm floor pocket** inside the board slot, held by four M2 screws | Only the **sensor housing pokes out** through an 11 mm square cutout (housing + 1–2 mm space), with a slot for the housing's little flex ribbon; a shallow trench lets the main FFC cable lie flat |
+| **Camera** (Pi V2 **or** V3 — same 25 × 24 board, 21 × 12.5 holes) | **Flush in a 1.2 mm floor pocket** inside the board slot, located by **four printed pins** (Ø1.8 in its 2.2 mm holes) | Only the **sensor housing pokes out** through an 11 mm square cutout (housing + 1–2 mm space), with a slot for the housing's little flex ribbon; a shallow trench lets the main FFC cable lie flat |
 | **Main trap PCB** (82 × 40, holes 58 × 23 — exact from its PcbDoc) | Across the body on 10 mm posts above the flush IR board | Upper posts stand in the camera slot, lower ones below the board's bottom edge; the **Pi Zero stacks onto the trap PCB's own 58 × 23 pattern** |
 
 > **Sealing:** there is **no window sheet** — every opening is filled by the
@@ -85,9 +85,9 @@ in, because the joint is a labyrinth:
 Two things you still add by hand:
 
 1. **The gasket.** Run a thin bead of silicone (or lay 1 mm foam tape) on
-   the floor's centre strip and around the camera pocket before screwing the
-   boards down — clamped PCB on plastic is weather-resistant, silicone makes
-   it airtight.
+   the floor's centre strip and around the camera pocket before pressing the
+   boards down — PCB on plastic is weather-resistant, silicone makes it
+   airtight (and still peels open for service).
 2. **A vent.** A fully sealed box breathes with temperature and sucks moisture
    past any seal. Stick a small square of PTFE/Gore vent tape over a 3 mm hole
    drilled high on a side wall, or accept the (slightly leaky) cable gland as
@@ -170,7 +170,7 @@ re-run. The ones you'll actually touch:
 | 0–3 mm | Floor, with wing windows + sensor + lens holes; clear sheet in the rebate below |
 | 3 mm | Camera posts — lens reaches down into its hole, baffle collar around it |
 | below 0 | Camera **sensor housing pokes out** (V2 ~2.5 mm, V3 ~5 mm); LED domes sit just inside their windows |
-| 0–3 mm | Floor — **IR board and camera both clamped flush**, sealing their own openings |
+| 0–3 mm | Floor — **IR board and camera both recessed flush on printed pins**, sealing their own openings |
 | 13 mm | **Main trap PCB** on 10 mm posts; the Pi Zero stacks onto it above |
 | 33 mm | Seat level — the shell's skirt lands here |
 

@@ -161,17 +161,19 @@ ax.add_patch(Rectangle((cx - P["ffc_w"] / 2, pcy - pl / 2 - P["ffc_len"]), P["ff
 for sxs in (-1, 1):
     for sys_ in (-1, 1):
         ax.add_patch(Circle((cx + sxs * P["cam_hole_dx"] / 2, cy + sys_ * P["cam_hole_dy"] / 2),
-                            P["cam_pilot_d"] / 2 + 0.6, fc="#fff", ec=HW, lw=1.0, zorder=5))
-ax.text(cx + 15, cy + 6, "cam V2/V3 FLUSH in %.1f pocket\nhousing out through %.1f sq\nFFC trench below" % (
+                            P["cam_pin_d"] / 2 + 0.6, fc="#fff", ec=HW, lw=1.0, zorder=5))
+ax.text(cx + 15, cy + 6, "cam V2/V3 FLUSH in %.1f pocket\non 4 printed pins, housing out\nthrough %.1f sq, FFC trench below" % (
         P["cam_pocket_d"], P["cam_cut_sq"]), fontsize=7.5, color=HW)
 # IR standoffs + rest pads
+ax.add_patch(MplPoly(offset_poly(board, P["ir_recess_fit"]), closed=True, fc="none",
+                     ec=SOFT, lw=0.8, ls=":", zorder=4))
 for (mx, my) in P["ir_mounts"]:
     ax.add_patch(Circle((ox + mx, oy + my), 3.0, fc="#fff", ec=HW, lw=1.2, zorder=5))
-    ax.add_patch(Circle((ox + mx, oy + my), P["ir_pilot_d"] / 2, fc=HW, ec="none", zorder=6))
+    ax.add_patch(Circle((ox + mx, oy + my), P["ir_pin_d"] / 2, fc=HW, ec="none", zorder=6))
 for (gx, gy2) in P["pin_pockets"]:
     ax.add_patch(Rectangle((ox + gx - P["pocket_w"] / 2, oy + gy2 - P["pocket_l"] / 2),
                            P["pocket_w"], P["pocket_l"], fc="#fbe3e0", ec="#e67e22", lw=1.2, zorder=5))
-ax.annotate("M3 screws through the board's real holes\ninto floor pilots (0,-6.5) (0,-29.1)", xy=(ox, oy - 29.1), xytext=(-60, -38),
+ax.annotate("printed pins through the board's real\n3.0 mm holes - no screws, lifts off", xy=(ox, oy - 29.1), xytext=(-60, -38),
             fontsize=7.5, color=HW, arrowprops=dict(arrowstyle="-", color=HW, lw=0.7))
 ax.annotate("board lies FLUSH on the floor\n(orange = JST pin through-pockets)", xy=(ox - 30, oy - 44), xytext=(-88, 44),
             fontsize=7.5, color="#e67e22", arrowprops=dict(arrowstyle="-", color="#e67e22", lw=0.7))
@@ -240,7 +242,7 @@ seg, fh, sp = P["leg_seg_h"], P["foot_h"], math.radians(P["leg_splay"])
 rows = ["%d blocks + foot = %3.0f mm leg  (%3.0f mm clearance, feet +%2.0f mm/side)"
         % (n, n * seg + fh, (n * seg + fh) * math.cos(sp), (n * seg + fh) * math.sin(sp)) for n in (2, 3, 4, 5)]
 fig.text(0.5, 0.055,
-         "ELEVATIONS (Z from floor top):  every opening OPEN below, filled by its part - IR board flush (LEDs/pins in windows + pockets), camera flush in its pocket, housing out the bottom   -   main trap PCB on 10 mm posts, Pi Zero stacked on it\n"
+         "ELEVATIONS (Z from floor top):  every opening OPEN below - IR board in a 1.8 mm batwing recess on 2 printed pins, camera in its 1.2 mm pocket on 4 pins, housing out the bottom   -   main trap PCB on 10 mm posts, Pi Zero stacked on it\n"
          "LEG STACKS (25 mm Lego blocks, 6 legs @ 14 deg):   " + "   |   ".join(rows[:2]) + "\n"
          + " " * 56 + rows[2] + "   |   " + rows[3] + "      target: 5 blocks = 12.5 cm legs\n"
          "GEOMETRY SOURCE:  outline, mount holes, sensor + connector positions auto-extracted from IRarray-v6.1.pcbdoc",

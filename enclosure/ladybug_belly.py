@@ -89,7 +89,12 @@ P = {
     # the VT90N1 is a RECTANGULAR CdS cell (~5 x 4 body, leads at x +-1.27):
     "sensor_w":      6.2,          # window matches the body + fit clearance
     "sensor_l":      5.2,
-    "ir_pilot_d":    2.5,          # M3 self-tap into the floor (board holes 3.0)
+    # the board drops into a shallow batwing recess and is held by printed
+    # PINS through its real 3.0 mm holes - no screws, lifts straight off
+    "ir_recess_d":   1.8,          # recess depth (the PCB is 1.6 thick)
+    "ir_recess_fit": 0.5,          # outline grown by this (~1 mm total slack)
+    "ir_pin_d":      2.6,          # a bit under the 3.0 holes - easy on/off
+    "ir_pin_h":      2.4,          # PCB-height-ish, a bit higher
     # The board lies FLUSH on the floor and seals its own opening. Everything
     # poking from its bottom face gets somewhere to go: LEDs into the wing
     # windows, the sensor into its hole, the JST pin fields into these
@@ -116,7 +121,8 @@ P = {
     "ribbon_len":    6.0,
     "cam_hole_dx":  21.0,          # V2/V3 screw pattern
     "cam_hole_dy":  12.5,
-    "cam_pilot_d":   1.7,          # M2 self-tap into the pocket floor
+    "cam_pin_d":     1.8,          # printed pins, a bit under the 2.2 holes
+    "cam_pin_h":     1.6,          # board-height-ish, a bit higher
     # FFC relief: shallow trench off the pocket's south edge so the cable
     # lies flat and the board isn't levered up
     "ffc_w":        17.0,
@@ -388,12 +394,19 @@ def build_belly():
     solid = solid.cut(Part.makeBox(p["ffc_w"], p["ffc_len"], p["ffc_deep"] + 0.01,
                                    App.Vector(cx - p["ffc_w"] / 2.0, pcy - pl / 2.0 - p["ffc_len"],
                                               ft - p["ffc_deep"])))
+    zc = ft - p["cam_pocket_d"]
     for sx2 in (-1, 1):
         for sy2 in (-1, 1):
-            solid = solid.cut(Part.makeCylinder(p["cam_pilot_d"] / 2.0, 1.31,
-                              App.Vector(cx + sx2 * p["cam_hole_dx"] / 2.0,
-                                         cy + sy2 * p["cam_hole_dy"] / 2.0,
-                                         ft - p["cam_pocket_d"] - 1.3)))
+            px2 = cx + sx2 * p["cam_hole_dx"] / 2.0
+            py2 = cy + sy2 * p["cam_hole_dy"] / 2.0
+            pin = Part.makeCylinder(p["cam_pin_d"] / 2.0, p["cam_pin_h"], App.Vector(px2, py2, zc))
+            tip = Part.makeCone(p["cam_pin_d"] / 2.0, p["cam_pin_d"] / 4.0, 0.6,
+                                App.Vector(px2, py2, zc + p["cam_pin_h"]))
+            solid = solid.fuse(pin.fuse(tip))
+
+    # ---- shallow batwing recess: the IR board drops in with ~1 mm slack
+    solid = solid.cut(ir_prism(ft - p["ir_recess_d"], p["ir_recess_d"] + 0.01,
+                               grow=p["ir_recess_fit"]))
 
     # ---- JST pin fields: through-pockets so the flush board lies flat
     for (gx, gy2) in p["pin_pockets"]:
@@ -423,12 +436,14 @@ def build_belly():
         solid = solid.cut(leg_socket(x, y, p["leg_splay"], solid=False))
 
     # ---- internal furniture (fused last: cuts can't orphan it) ----
-    # IR board: clamped FLUSH - just two blind M3 pilots in the floor at the
-    # board's real holes. (Smear silicone or lay thin foam on the centre strip
-    # before screwing down if you want it properly airtight.)
+    # IR board: located by two printed pins through its real 3.0 mm holes -
+    # undersized so the board pops on and off without cracking them
+    zr = ft - p["ir_recess_d"]
     for (mx, my) in p["ir_mounts"]:
-        solid = solid.cut(Part.makeCylinder(p["ir_pilot_d"] / 2.0, ft - 0.4,
-                                            App.Vector(ox + mx, oy + my, 0.5)))
+        pin = Part.makeCylinder(p["ir_pin_d"] / 2.0, p["ir_pin_h"], App.Vector(ox + mx, oy + my, zr))
+        tip = Part.makeCone(p["ir_pin_d"] / 2.0, p["ir_pin_d"] / 4.0, 0.8,
+                            App.Vector(ox + mx, oy + my, zr + p["ir_pin_h"]))
+        solid = solid.fuse(pin.fuse(tip))
     # main trap-PCB posts (the Pi Zero stacks onto the trap board above)
     for (x, y) in p["main_posts"]:
         solid = solid.fuse(post(x, y, ft, p["main_post_h"], p["main_post_d"],
