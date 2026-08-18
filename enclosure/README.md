@@ -25,13 +25,13 @@ Everything lives **inside** the body. Measured off the actual boards:
 |---|---|---|
 | **IR board** (batwing X, 81 × 98.4 — exact from the PcbDoc) | **Flush on the floor** — two M3 screws through its real holes (0,−6.5)/(0,−29.1) into floor pilots clamp it down | The floor has **wing-shaped windows that the LED fields fill tightly** — only the diode zones and the light sensor are open. The centre strip (logo, mount holes, the JST pins, the sensor legs) stays over solid floor, and the board **seals its own opening**: LEDs drop into the windows, the sensor into its hole, the JST pin fields into through-pockets. Silicone/foam on the strip makes it airtight |
 | **Light sensor** (VT90N1 at (0,+6.3) — from the PcbDoc) | Its own Ø8 window in the solid strip | Reads ambient light straight down |
-| **Camera** (Pi V2 **or** V3 — same 21 × 12.5 mm holes) | **Inside the board's camera slot** (37 mm wide, camera is 25) on 3 mm posts | Lens looks down a Ø12 hole that clears both V2 and V3 barrels, ringed by a baffle collar so IR can't glare into it |
+| **Camera** (Pi V2 **or** V3 — same 25 × 24 board, 21 × 12.5 holes) | **Flush in a 1.2 mm floor pocket** inside the board slot, held by four M2 screws | Only the **sensor housing pokes out** through a tight 9.8 mm square cutout (V3 snug; file to ~9 for V2). A shallow trench lets the FFC cable lie flat |
 | **Main trap PCB** (82 × 40, holes 58 × 23 — exact from its PcbDoc) | Across the body on 10 mm posts above the flush IR board | Upper posts stand in the camera slot, lower ones below the board's bottom edge; the **Pi Zero stacks onto the trap PCB's own 58 × 23 pattern** |
 
-> **Sealing:** one rectangular **clear acrylic sheet (90 × 96 × 2 mm)** sits in a
-> **frame under the floor**, its face 2 mm down — clear of the LED domes and
-> pins hanging through — and closes every floor opening in one go. Cheap to buy,
-> two straight cuts to make.
+> **Sealing:** there is **no window sheet** — every opening is filled by the
+> component that uses it, and the boards clamped flush **are** the seal. The
+> openings face the ground, so rain can't fall in. Conformal-coat the IR
+> board's LED face (or spray it with clear lacquer) for damp nights.
 
 The board keeps **~1.5–6 mm wiggle room** to the cavity wall all the way round —
 it drops in flat and lifts out without a fight.
@@ -84,9 +84,10 @@ in, because the joint is a labyrinth:
 
 Two things you still add by hand:
 
-1. **The clear sheet.** Cut a 90 × 96 mm rectangle of 2 mm acrylic (round
-   the corners roughly to R8 with a file), bed it into the under-floor frame on
-   a bead of clear silicone. That seals every floor opening at once.
+1. **The gasket.** Run a thin bead of silicone (or lay 1 mm foam tape) on
+   the floor's centre strip and around the camera pocket before screwing the
+   boards down — clamped PCB on plastic is weather-resistant, silicone makes
+   it airtight.
 2. **A vent.** A fully sealed box breathes with temperature and sucks moisture
    past any seal. Stick a small square of PTFE/Gore vent tape over a 3 mm hole
    drilled high on a side wall, or accept the (slightly leaky) cable gland as
@@ -112,7 +113,7 @@ vibration.
 
 ## Height adjustment (the Lego bit)
 
-**Six legs — front, middle and rear pairs — tilted 20° outward** like a
+**Six legs — front, middle and rear pairs — tilted 14° outward** like a
 tripod; the belly sockets are angled,
 so the taller you stack, the wider the stance. Every `leg_segment` adds **25 mm**
 along the leg:
@@ -123,16 +124,17 @@ belly socket (14° out) → [block] → [block] → ... → [foot]
 
 | Blocks per leg | Leg length | Ground clearance | Feet spread |
 |---|---|---|---|
-| 2 | 56 mm | 53 mm | +19 mm/side |
-| 3 | 81 mm | 76 mm | +28 mm/side |
-| 4 | 106 mm | 100 mm | +36 mm/side |
-| **5** | **131 mm ≈ 12.5 cm** | **123 mm** | **+45 mm/side** |
+| 2 | 56 mm | 54 mm | +14 mm/side |
+| 3 | 81 mm | 79 mm | +20 mm/side |
+| 4 | 106 mm | 103 mm | +26 mm/side |
+| **5** | **131 mm ≈ 12.5 cm** | **127 mm** | **+32 mm/side** |
 
 - **Square pegs** mean the legs can't rotate — the splay angle stays put.
-- **Why 20°?** The camera sees ~62° × 49°. At 20° the legs stay ahead of the
-  picture's edges for the first ~half metre of lift; at 1 m only the far-away
-  feet clip the extreme corners. Steeper doubles the stance for little gain;
-  shallower puts legs in frame from ~15 cm up.
+- **Why 14°?** The camera sees ~62° × 49°, so no sane splay keeps legs out
+  of the extreme corners at every height — 14° keeps the upper leg sections
+  (the close, blurry, dominant ones) out of view at working heights without
+  making the stance silly. If you build very tall and the corners bother you,
+  raise `leg_splay` a few degrees and reprint just the belly.
 - Stack the downhill legs taller (use the half blocks) to stand level on a slope.
 
 **Camera height is your focus knob.** The IMX708 won't focus closer than ~10 cm,
@@ -150,7 +152,7 @@ re-run. The ones you'll actually touch:
 | `ir_mounts`, `sensor_pos` | Exact centreline holes + VT90N1 spot (from the PcbDoc) |
 | `win_inset`, `win_xmin` | Wing-window fit: rim width and solid-strip width |
 | `cam_pos`, `cam_lens_d` | Camera lens hole (Ø12 clears V2 and V3) |
-| `sheet_w/l/r/th` | The one-piece clear sealing sheet |
+| `cam_cut_sq`, `cam_fit` | Camera housing cutout + pocket tightness |
 | `main_posts`, `main_post_h` | Trap-PCB standoffs (58 × 23 pattern, from its PcbDoc) |
 | `leg_splay`, `leg_seg_h` | Tripod angle and block height |
 | `fit` | Leg peg tightness |
@@ -167,9 +169,8 @@ re-run. The ones you'll actually touch:
 |---|---|
 | 0–3 mm | Floor, with wing windows + sensor + lens holes; clear sheet in the rebate below |
 | 3 mm | Camera posts — lens reaches down into its hole, baffle collar around it |
-| −2 mm | Clear sheet in the under-floor frame (LED domes and pins stop ~1 mm above it) |
-| 0–3 mm | Floor — **IR board clamped flush on top**, sealing its own openings |
-| 6 mm | Camera board on 3 mm posts, lens down through the floor |
+| below 0 | Camera **sensor housing pokes out** (V2 ~2.5 mm, V3 ~5 mm); LED domes sit just inside their windows |
+| 0–3 mm | Floor — **IR board and camera both clamped flush**, sealing their own openings |
 | 13 mm | **Main trap PCB** on 10 mm posts; the Pi Zero stacks onto it above |
 | 33 mm | Seat level — the shell's skirt lands here |
 

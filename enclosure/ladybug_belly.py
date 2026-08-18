@@ -15,22 +15,23 @@ Built around the real hardware. EVERYTHING mounts INSIDE the body:
     + centreline rest posts + a perimeter ledge under its outer 2.5 mm
     (gapped at the JST pin fields). The floor has WING-SHAPED WINDOWS the
     LED fields fill tightly; the centre strip stays over solid floor.
-    v4: the board now lies FLUSH (no standoffs) and seals its own opening -
-    LEDs drop into the windows, JST pins into through-pockets, and the clear
-    sheet moved into a frame UNDER the floor to stay clear of them.
-  * Camera (Pi V2 or V3, same 21 x 12.5 holes) sits INSIDE THE SLOT on its
-    own standoffs; lens looks down a 12 mm hole (clears both barrels).
+    v5: the board lies FLUSH (no standoffs) and seals its own opening -
+    LEDs drop into the windows, JST pins into through-pockets; no sheet.
+  * Camera (Pi V2 or V3, same 21 x 12.5 holes) lies FLUSH in a floor
+    pocket inside the slot - only the sensor housing pokes out through a
+    tight square cutout; an FFC trench lets the cable lie flat.
   * Pi Zero 2 W rides above on 13 mm posts (official 58 x 23 hole pattern);
     one post pair stands in the camera slot, one below the board's bottom
     plateau - neither touches the board. Full-size Pi pattern in a comment.
 
-Sealing: ONE rectangular clear acrylic sheet (~105 x 91 x 2 mm) drops into a
-rebate on the underside and is siliconed in - it closes every floor opening
-(wing windows, sensor hole, camera hole) in one go. The lid is the usual
-lift-off labyrinth (skirt over rebate + tongue, weep-drained).
+Sealing: NO sheet - every opening is filled by the component that uses it
+(boards clamped flush ARE the seal; a smear of silicone makes it airtight).
+The openings face the ground. The lid is the usual lift-off labyrinth
+(skirt over rebate + tongue, weep-drained).
 
-Legs: FOUR, tilted 14 deg outward like a tripod - stacking 25 mm blocks, so
-5 blocks + foot = ~12.5 cm legs, and the stance widens the taller it gets.
+Legs: SIX (front/mid/rear pairs), tilted 14 deg outward like a tripod -
+stacking 25 mm blocks: 5 blocks + foot = ~12.5 cm legs, stance widening
+with height so the legs stay out of the camera frame.
 """
 import math
 import os
@@ -90,34 +91,34 @@ P = {
     # The board lies FLUSH on the floor and seals its own opening. Everything
     # poking from its bottom face gets somewhere to go: LEDs into the wing
     # windows, the sensor into its hole, the JST pin fields into these
-    # through-pockets (the clear sheet below still seals them):
+    # through-pockets:
     "pin_pockets": [(33.2, -46.3), (-33.2, -46.3)],
     "pocket_w":     13.0,
     "pocket_l":      9.0,
 
-    # --- camera (V2 / V3): sits inside the board's camera slot ---
-    "cam_pos":      (0.0, 30.0),   # lens centre (slot is 37.2 wide, y 10..35+)
-    "cam_lens_d":   12.0,          # clears BOTH V2 and V3 lens barrels
-    "cam_hole_dx":  21.0,          # V2/V3 mount holes: 21 x 12.5 mm
+    # --- camera (V2 / V3): FLUSH in a floor pocket, ONLY the sensor
+    #     housing pokes out the bottom. Both boards are 25 x 24 with the same
+    #     21 x 12.5 holes; the lens sits on the hole-pattern centre, offset
+    #     ~3.5 mm toward one board edge.
+    "cam_pos":      (0.0, 30.0),   # lens/housing centre (inside the board slot)
+    "cam_board_w":  25.0,
+    "cam_board_l":  24.0,
+    "cam_board_off": -3.5,         # board centre relative to the lens (Y)
+    "cam_fit":       0.4,          # pocket clearance - the "tight fit" number
+    "cam_pocket_d":  1.2,          # board drops in flush (board is ~1.0 thick)
+    "cam_cut_sq":    9.8,          # square housing cutout: V3 ~9.2 fits snug,
+    #                                for V2 (~8.5) print 9.0 or shim with tape
+    "cam_hole_dx":  21.0,          # V2/V3 screw pattern
     "cam_hole_dy":  12.5,
-    "cam_post_h":    3.0,          # lens reaches down into its hole
-    "cam_post_d":    6.0,
-    "cam_pilot_d":   2.2,          # M2
-    "collar_od":    16.0,          # baffle ring around the lens (kills IR glare)
-    "collar_id":    12.5,
-    "collar_h":      2.5,
+    "cam_pilot_d":   1.7,          # M2 self-tap into the pocket floor
+    # FFC relief: shallow trench off the pocket's south edge so the cable
+    # lies flat and the board isn't levered up
+    "ffc_w":        17.0,
+    "ffc_len":       3.5,
+    "ffc_deep":      1.2,
 
-    # --- one rectangular clear sheet seals ALL openings (underside rebate) ---
-    "sheet_w":      90.0,   # covers the windows (x +-38) and pin pockets (x +-39.7)
-    "sheet_l":      96.0,
-    "sheet_r":       8.0,          # corner radius
-    "sheet_cy":     -1.0,          # rebate centre offset (Y)
-    "sheet_th":      2.0,          # rebate depth = sheet thickness
-    # the sheet lives in a frame UNDER the floor, its face 2 mm down, so the
-    # LED domes / pins hanging through the openings never touch it
-    "frame_drop":    4.0,
-    "frame_wall":    2.0,
-    "frame_lip":     3.0,
+    # (no clear sheet: every opening is FILLED by its own component - the
+    #  boards are the seal, and the openings face the ground anyway)
 
     # --- MAIN trap PCB (ATmega): 82 x 40, four 2.8 mm holes in a 58 x 23
     #     pattern - extracted from ATMEGA328P-AU-SMT2024_N_N.PcbDoc. Mounted
@@ -131,10 +132,9 @@ P = {
     "main_pilot_d":  2.2,          # M2.5
 
     # --- legs: SIX (like the real bug), splayed outward like a tripod ---
-    #     front pair, middle side pair, rear pair. 20 deg keeps the legs out
-    #     of the camera frame to ~0.5 m of height without a silly stance.
+    #     front pair, middle side pair, rear pair.
     "leg_pos":     [(32, 56), (-32, 56), (52, 0), (-52, 0), (34, -57), (-34, -57)],
-    "leg_splay":    20.0,          # degrees outward
+    "leg_splay":    14.0,          # degrees outward - enough to stay out of frame, not silly
     "socket_od":    14.0,
     "socket_drop":  13.0,
     "socket_sq":     7.4,
@@ -366,23 +366,28 @@ def build_belly():
     sx, sy = p["sensor_pos"]
     solid = solid.cut(Part.makeCylinder(p["sensor_hole_d"] / 2.0, ft + 2, App.Vector(ox + sx, oy + sy, -1)))
 
-    # ---- camera lens hole (through the floor, inside the notch)
-    solid = solid.cut(Part.makeCylinder(p["cam_lens_d"] / 2.0, ft + 2, App.Vector(cx, cy, -1)))
+    # ---- camera: flush pocket + square housing cutout + FFC trench + pilots
+    pw, pl = p["cam_board_w"] + p["cam_fit"], p["cam_board_l"] + p["cam_fit"]
+    pcy = cy + p["cam_board_off"]
+    solid = solid.cut(Part.makeBox(pw, pl, p["cam_pocket_d"] + 0.01,
+                                   App.Vector(cx - pw / 2.0, pcy - pl / 2.0, ft - p["cam_pocket_d"])))
+    sq = p["cam_cut_sq"]
+    solid = solid.cut(Part.makeBox(sq, sq, ft + 2.0, App.Vector(cx - sq / 2.0, cy - sq / 2.0, -1.0)))
+    solid = solid.cut(Part.makeBox(p["ffc_w"], p["ffc_len"], p["ffc_deep"] + 0.01,
+                                   App.Vector(cx - p["ffc_w"] / 2.0, pcy - pl / 2.0 - p["ffc_len"],
+                                              ft - p["ffc_deep"])))
+    for sx2 in (-1, 1):
+        for sy2 in (-1, 1):
+            solid = solid.cut(Part.makeCylinder(p["cam_pilot_d"] / 2.0, 1.31,
+                              App.Vector(cx + sx2 * p["cam_hole_dx"] / 2.0,
+                                         cy + sy2 * p["cam_hole_dy"] / 2.0,
+                                         ft - p["cam_pocket_d"] - 1.3)))
 
     # ---- JST pin fields: through-pockets so the flush board lies flat
     for (gx, gy2) in p["pin_pockets"]:
         solid = solid.cut(Part.makeBox(p["pocket_w"], p["pocket_l"], ft + 2.0,
                                        App.Vector(ox + gx - p["pocket_w"] / 2.0,
                                                   oy + gy2 - p["pocket_l"] / 2.0, -1.0)))
-
-    # ---- under-floor frame carrying the clear sheet 2 mm below the floor
-    W1, L1 = p["sheet_w"] + 1.0, p["sheet_l"] + 1.0
-    fd, fw, fl = p["frame_drop"], p["frame_wall"], p["frame_lip"]
-    frame = rrect(0.0, p["sheet_cy"], W1 + 2 * fw, L1 + 2 * fw, p["sheet_r"] + fw, -fd, fd + 0.6)
-    solid = solid.fuse(frame.common(outline_solid(0.4, -fd - 1.0, fd + 2.0)))
-    solid = solid.cut(rrect(0.0, p["sheet_cy"], W1, L1, p["sheet_r"], -fd, p["sheet_th"]))
-    solid = solid.cut(rrect(0.0, p["sheet_cy"], W1 - 2 * fl, L1 - 2 * fl,
-                            max(p["sheet_r"] - fl, 1.5), -fd - 1.0, fd - p["sheet_th"] + 1.05))
 
     # ---- weep notches drain the gutter outward
     ring = outline_solid(-1.0, L["seat_z"] - 1.5, 3.0).cut(outline_solid(L["inset_tongue"], L["seat_z"] - 2.0, 5.0))
@@ -412,12 +417,6 @@ def build_belly():
     for (mx, my) in p["ir_mounts"]:
         solid = solid.cut(Part.makeCylinder(p["ir_pilot_d"] / 2.0, ft - 0.4,
                                             App.Vector(ox + mx, oy + my, 0.5)))
-    # camera: baffle collar + V2/V3 standoffs
-    collar = Part.makeCylinder(p["collar_od"] / 2.0, p["collar_h"], App.Vector(cx, cy, ft))
-    collar = collar.cut(Part.makeCylinder(p["collar_id"] / 2.0, p["collar_h"] + 2, App.Vector(cx, cy, ft - 1)))
-    solid = solid.fuse(collar)
-    solid = solid.fuse(four_posts(cx, cy, p["cam_hole_dx"], p["cam_hole_dy"], ft,
-                                  p["cam_post_h"], p["cam_post_d"], p["cam_pilot_d"]))
     # main trap-PCB posts (the Pi Zero stacks onto the trap board above)
     for (x, y) in p["main_posts"]:
         solid = solid.fuse(post(x, y, ft, p["main_post_h"], p["main_post_d"],

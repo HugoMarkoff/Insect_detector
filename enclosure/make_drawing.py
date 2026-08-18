@@ -147,14 +147,19 @@ sx, sy = P["sensor_pos"]
 ax.add_patch(Circle((ox + sx, oy + sy), P["sensor_hole_d"] / 2, fc="#fbe3e0", ec=DIM, lw=1.1, zorder=5))
 ax.text(ox + sx + 6, oy + sy - 1, "light sensor\nØ%.0f window" % P["sensor_hole_d"], fontsize=7.5, color=DIM)
 cx, cy = P["cam_pos"]
-ax.add_patch(Circle((cx, cy), P["collar_od"] / 2, fc="none", ec=INK, lw=0.9, zorder=5))
-ax.add_patch(Circle((cx, cy), P["cam_lens_d"] / 2, fc="#fbe3e0", ec=DIM, lw=1.2, zorder=5))
+pw, pl = P["cam_board_w"] + P["cam_fit"], P["cam_board_l"] + P["cam_fit"]
+pcy = cy + P["cam_board_off"]
+ax.add_patch(Rectangle((cx - pw / 2, pcy - pl / 2), pw, pl, fc="#eef4ea", ec=HW, lw=1.0, zorder=4))
+ax.add_patch(Rectangle((cx - P["cam_cut_sq"] / 2, cy - P["cam_cut_sq"] / 2), P["cam_cut_sq"], P["cam_cut_sq"],
+                       fc="#fbe3e0", ec=DIM, lw=1.2, zorder=5))
+ax.add_patch(Rectangle((cx - P["ffc_w"] / 2, pcy - pl / 2 - P["ffc_len"]), P["ffc_w"], P["ffc_len"],
+                       fc="#f4ede2", ec="#e67e22", lw=1.0, zorder=4))
 for sxs in (-1, 1):
     for sys_ in (-1, 1):
         ax.add_patch(Circle((cx + sxs * P["cam_hole_dx"] / 2, cy + sys_ * P["cam_hole_dy"] / 2),
-                            P["cam_post_d"] / 2, fc="#fff", ec=HW, lw=1.0, zorder=5))
-ax.add_patch(Rectangle((cx - 12.5, cy - 12), 25, 24, fc="none", ec=HW, lw=0.8, ls=":", zorder=5))
-ax.text(cx + 15, cy + 6, "Pi cam V2/V3\n21 x 12.5 posts\nlens Ø12", fontsize=7.5, color=HW)
+                            P["cam_pilot_d"] / 2 + 0.6, fc="#fff", ec=HW, lw=1.0, zorder=5))
+ax.text(cx + 15, cy + 6, "cam V2/V3 FLUSH in %.1f pocket\nhousing out through %.1f sq\nFFC trench below" % (
+        P["cam_pocket_d"], P["cam_cut_sq"]), fontsize=7.5, color=HW)
 # IR standoffs + rest pads
 for (mx, my) in P["ir_mounts"]:
     ax.add_patch(Circle((ox + mx, oy + my), 3.0, fc="#fff", ec=HW, lw=1.2, zorder=5))
@@ -199,15 +204,13 @@ ax = axes[1]
 ax.set_title("BOTTOM VIEW - underside  (projected through, same orientation)", fontsize=12, color=INK, pad=8)
 body_patches(ax)
 # sheet rebate
-ax.add_patch(FancyBboxPatch((-P["sheet_w"] / 2, P["sheet_cy"] - P["sheet_l"] / 2), P["sheet_w"], P["sheet_l"],
-                            boxstyle="round,pad=0,rounding_size=%.1f" % P["sheet_r"],
-                            fc="#e8f1fa", ec=HW, lw=1.2, ls="-.", zorder=2))
 for w in (win_r, win_l):
     ax.add_patch(MplPoly(w, closed=True, fc="#fbe3e0", ec=DIM, lw=1.2, zorder=3))
 ax.add_patch(MplPoly(board, closed=True, fc="none", ec=HW, lw=1.0, ls="--", zorder=4))
 ax.add_patch(Circle((ox + sx, oy + sy), P["sensor_hole_d"] / 2, fc="#fbe3e0", ec=DIM, lw=1.1, zorder=5))
-ax.add_patch(Circle((cx, cy), P["cam_lens_d"] / 2, fc="#fbe3e0", ec=DIM, lw=1.2, zorder=5))
-ax.text(cx + 9, cy - 2, "lens Ø12", fontsize=7.5, color=DIM)
+ax.add_patch(Rectangle((cx - P["cam_cut_sq"] / 2, cy - P["cam_cut_sq"] / 2), P["cam_cut_sq"], P["cam_cut_sq"],
+                       fc="#fbe3e0", ec=DIM, lw=1.2, zorder=5))
+ax.text(cx + 8, cy - 2, "housing cutout %.1f sq" % P["cam_cut_sq"], fontsize=7.5, color=DIM)
 # legs w/ splay arrows
 for (x, y) in P["leg_pos"]:
     ax.add_patch(Circle((x, y), P["socket_od"] / 2, fc="#e8e6dc", ec=INK, lw=1.1, zorder=5))
@@ -219,8 +222,6 @@ for (x, y) in P["leg_pos"]:
 ax.text(0, -108, "arrows = leg splay direction, %.0f° outward" % P["leg_splay"], fontsize=8, color=DIM, ha="center")
 common_marks(ax)
 # dimensions
-dim_h(ax, -P["sheet_w"] / 2, P["sheet_w"] / 2, P["sheet_cy"] + P["sheet_l"] / 2 + 4,
-      "clear sheet %.0f x %.0f x %.0f, in %.0f mm rebate" % (P["sheet_w"], P["sheet_l"], P["sheet_th"], P["sheet_th"]), HW)
 dim_h(ax, -P["win_xmin"], P["win_xmin"], oy - 52, "solid strip %.0f" % (2 * P["win_xmin"]), DIM)
 dim_h(ax, P["leg_pos"][1][0], P["leg_pos"][0][0], P["leg_pos"][0][1] + 12, "front %.0f" % (2 * abs(P["leg_pos"][0][0])))
 dim_h(ax, P["leg_pos"][3][0], P["leg_pos"][2][0], P["leg_pos"][2][1] + 14, "mid %.0f" % (2 * abs(P["leg_pos"][2][0])))
@@ -232,9 +233,8 @@ seg, fh, sp = P["leg_seg_h"], P["foot_h"], math.radians(P["leg_splay"])
 rows = ["%d blocks + foot = %3.0f mm leg  (%3.0f mm clearance, feet +%2.0f mm/side)"
         % (n, n * seg + fh, (n * seg + fh) * math.cos(sp), (n * seg + fh) * math.sin(sp)) for n in (2, 3, 4, 5)]
 fig.text(0.5, 0.055,
-         "ELEVATIONS (Z from floor top):  IR board FLUSH on the floor, sealing its opening (LEDs+pins drop into windows/pockets; clear sheet 2 mm below)   -   "
-         "camera on 3 mm posts   -   main trap PCB on 10 mm posts, Pi Zero stacked on it\n"
-         "LEG STACKS (25 mm Lego blocks, 6 legs @ 20 deg):   " + "   |   ".join(rows[:2]) + "\n"
+         "ELEVATIONS (Z from floor top):  every opening OPEN below, filled by its part - IR board flush (LEDs/pins in windows + pockets), camera flush in its pocket, housing out the bottom   -   main trap PCB on 10 mm posts, Pi Zero stacked on it\n"
+         "LEG STACKS (25 mm Lego blocks, 6 legs @ 14 deg):   " + "   |   ".join(rows[:2]) + "\n"
          + " " * 56 + rows[2] + "   |   " + rows[3] + "      target: 5 blocks = 12.5 cm legs\n"
          "GEOMETRY SOURCE:  outline, mount holes, sensor + connector positions auto-extracted from IRarray-v6.1.pcbdoc",
          ha="center", va="bottom", fontsize=9, color=INK, family="monospace")
