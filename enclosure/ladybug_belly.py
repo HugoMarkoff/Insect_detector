@@ -15,6 +15,9 @@ Built around the real hardware. EVERYTHING mounts INSIDE the body:
     + centreline rest posts + a perimeter ledge under its outer 2.5 mm
     (gapped at the JST pin fields). The floor has WING-SHAPED WINDOWS the
     LED fields fill tightly; the centre strip stays over solid floor.
+    v4: the board now lies FLUSH (no standoffs) and seals its own opening -
+    LEDs drop into the windows, JST pins into through-pockets, and the clear
+    sheet moved into a frame UNDER the floor to stay clear of them.
   * Camera (Pi V2 or V3, same 21 x 12.5 holes) sits INSIDE THE SLOT on its
     own standoffs; lens looks down a 12 mm hole (clears both barrels).
   * Pi Zero 2 W rides above on 13 mm posts (official 58 x 23 hole pattern);
@@ -47,7 +50,7 @@ P = {
     "head_rx":        38.0,
     "head_ry":        16.0,
     "floor_th":        3.0,
-    "rim_h":          24.0,
+    "rim_h":          30.0,   # room for the trap PCB + stacked Pi Zero
 
     # --- shell interface (the waterproof "lift" - part 2 must match) ---
     "skirt_th":        2.4,
@@ -77,24 +80,20 @@ P = {
     # windows: the LED wing zones. Window = board outline shrunk by
     # `win_inset`, kept outside the solid centre strip |x| < `win_xmin`.
     # (innermost LED edge is at |x|=14.9 - from the PcbDoc)
-    "win_inset":     4.0,
-    "win_xmin":     14.5,
+    "win_inset":     2.5,     # rim under the board edge (outermost LED edge is 3.05 in)
+    "win_xmin":     14.2,
     # centreline mounting holes + light sensor: EXACT from the PcbDoc.
     "ir_mounts":  [(0.0, -6.50), (0.0, -29.06)],   # 2x plated 3.0 mm holes
     "sensor_pos":   (0.0, 6.30),   # R30, VT90N1 photoresistor (through-hole)
     "sensor_hole_d": 8.0,
-    "ir_post_h":     5.0,          # the "smart elevation": spikes hang free
-    "ir_post_d":     7.0,
-    "ir_pilot_d":    2.5,          # M3 self-tap (board holes are 3.0)
-    # extra centreline rest posts (no screw), clear of pads and the sensor
-    "ir_rests":   [(0.0, 1.0), (0.0, -35.0)],
-    # perimeter support ledge under the board's outer 2.5 mm, interrupted
-    # where the JST connector pins poke through near the bottom wing tips
-    "ledge_out":     1.5,
-    "ledge_in":      2.5,
-    "ledge_gaps":  [(33.2, -46.3), (-33.2, -46.3)],  # JST pin fields
-    "ledge_gap_w":  14.0,
-    "ledge_gap_l":  10.0,
+    "ir_pilot_d":    2.5,          # M3 self-tap into the floor (board holes 3.0)
+    # The board lies FLUSH on the floor and seals its own opening. Everything
+    # poking from its bottom face gets somewhere to go: LEDs into the wing
+    # windows, the sensor into its hole, the JST pin fields into these
+    # through-pockets (the clear sheet below still seals them):
+    "pin_pockets": [(33.2, -46.3), (-33.2, -46.3)],
+    "pocket_w":     13.0,
+    "pocket_l":      9.0,
 
     # --- camera (V2 / V3): sits inside the board's camera slot ---
     "cam_pos":      (0.0, 30.0),   # lens centre (slot is 37.2 wide, y 10..35+)
@@ -114,14 +113,22 @@ P = {
     "sheet_r":       8.0,          # corner radius
     "sheet_cy":     -1.0,          # rebate centre offset (Y)
     "sheet_th":      2.0,          # rebate depth = sheet thickness
+    # the sheet lives in a frame UNDER the floor, its face 2 mm down, so the
+    # LED domes / pins hanging through the openings never touch it
+    "frame_drop":    4.0,
+    "frame_wall":    2.4,
+    "frame_lip":     3.0,
 
-    # --- Raspberry Pi Zero 2 W, portrait, above the IR board's centre strip ---
-    #     (upper post pair stands inside the camera slot; lower pair below the
-    #      board's bottom plateau - neither touches the board)
-    "pi_posts":   [(11.5, 15.0), (-11.5, 15.0), (11.5, -43.0), (-11.5, -43.0)],
-    "pi_post_h":    13.0,          # clears the IR screw heads; JSTs are outboard
-    "pi_post_d":     5.0,
-    "pi_pilot_d":    2.2,          # M2.5
+    # --- MAIN trap PCB (ATmega): 82 x 40, four 2.8 mm holes in a 58 x 23
+    #     pattern - extracted from ATMEGA328P-AU-SMT2024_N_N.PcbDoc. Mounted
+    #     across the body: upper post pair stands in the camera slot, lower
+    #     pair below the IR board's bottom plateau - neither touches the
+    #     flush board. The Pi Zero stacks onto the trap PCB's own 58 x 23
+    #     pattern above it.
+    "main_posts": [(11.5, 15.6), (-11.5, 15.6), (11.5, -42.4), (-11.5, -42.4)],
+    "main_post_h":  10.0,
+    "main_post_d":   5.0,
+    "main_pilot_d":  2.2,          # M2.5
 
     # --- legs: FOUR, splayed outward like a tripod ---
     "leg_pos":     [(34, 58), (-34, 58), (38, -57), (-38, -57)],
@@ -360,9 +367,20 @@ def build_belly():
     # ---- camera lens hole (through the floor, inside the notch)
     solid = solid.cut(Part.makeCylinder(p["cam_lens_d"] / 2.0, ft + 2, App.Vector(cx, cy, -1)))
 
-    # ---- underside rebate for the ONE clear acrylic sheet that seals it all
-    solid = solid.cut(rrect(0.0, p["sheet_cy"], p["sheet_w"] + 1.0, p["sheet_l"] + 1.0,
-                            p["sheet_r"], 0.0, p["sheet_th"]))
+    # ---- JST pin fields: through-pockets so the flush board lies flat
+    for (gx, gy2) in p["pin_pockets"]:
+        solid = solid.cut(Part.makeBox(p["pocket_w"], p["pocket_l"], ft + 2.0,
+                                       App.Vector(ox + gx - p["pocket_w"] / 2.0,
+                                                  oy + gy2 - p["pocket_l"] / 2.0, -1.0)))
+
+    # ---- under-floor frame carrying the clear sheet 2 mm below the floor
+    W1, L1 = p["sheet_w"] + 1.0, p["sheet_l"] + 1.0
+    fd, fw, fl = p["frame_drop"], p["frame_wall"], p["frame_lip"]
+    frame = rrect(0.0, p["sheet_cy"], W1 + 2 * fw, L1 + 2 * fw, p["sheet_r"] + fw, -fd, fd + 0.6)
+    solid = solid.fuse(frame.common(outline_solid(0.4, -fd - 1.0, fd + 2.0)))
+    solid = solid.cut(rrect(0.0, p["sheet_cy"], W1, L1, p["sheet_r"], -fd, p["sheet_th"]))
+    solid = solid.cut(rrect(0.0, p["sheet_cy"], W1 - 2 * fl, L1 - 2 * fl,
+                            max(p["sheet_r"] - fl, 1.5), -fd - 1.0, fd - p["sheet_th"] + 1.05))
 
     # ---- weep notches drain the gutter outward
     ring = outline_solid(-1.0, L["seat_z"] - 1.5, 3.0).cut(outline_solid(L["inset_tongue"], L["seat_z"] - 2.0, 5.0))
@@ -386,34 +404,22 @@ def build_belly():
         solid = solid.cut(leg_socket(x, y, p["leg_splay"], solid=False))
 
     # ---- internal furniture (fused last: cuts can't orphan it) ----
-    # IR board: two centreline screw standoffs ("smart elevation")
+    # IR board: clamped FLUSH - just two blind M3 pilots in the floor at the
+    # board's real holes. (Smear silicone or lay thin foam on the centre strip
+    # before screwing down if you want it properly airtight.)
     for (mx, my) in p["ir_mounts"]:
-        solid = solid.fuse(post(ox + mx, oy + my, ft, p["ir_post_h"], p["ir_post_d"],
-                                p["ir_pilot_d"], p["ir_post_h"] - 1.0))
-    # ... plus plain rest posts on the centreline (no screw)
-    for (px, py) in p["ir_rests"]:
-        solid = solid.fuse(Part.makeCylinder(p["ir_post_d"] / 2.0, p["ir_post_h"],
-                                             App.Vector(ox + px, oy + py, ft)))
-    # ... plus a perimeter ledge the board's outer edge lies on, gapped at the
-    #     JST connectors whose pins poke through the bottom face
-    ledge = ir_prism(ft, p["ir_post_h"], grow=p["ledge_out"]).cut(
-        ir_prism(ft - 1, p["ir_post_h"] + 2, grow=-p["ledge_in"]))
-    for (gx, gy2) in p["ledge_gaps"]:
-        ledge = ledge.cut(Part.makeBox(p["ledge_gap_w"], p["ledge_gap_l"], p["ir_post_h"] + 4,
-                                       App.Vector(ox + gx - p["ledge_gap_w"] / 2.0,
-                                                  oy + gy2 - p["ledge_gap_l"] / 2.0, ft - 1)))
-    ledge = ledge.common(outline_solid(L["inset_cavity"] + 0.3, ft - 0.5, p["ir_post_h"] + 1.5))
-    solid = solid.fuse(ledge)
+        solid = solid.cut(Part.makeCylinder(p["ir_pilot_d"] / 2.0, ft - 0.4,
+                                            App.Vector(ox + mx, oy + my, 0.5)))
     # camera: baffle collar + V2/V3 standoffs
     collar = Part.makeCylinder(p["collar_od"] / 2.0, p["collar_h"], App.Vector(cx, cy, ft))
     collar = collar.cut(Part.makeCylinder(p["collar_id"] / 2.0, p["collar_h"] + 2, App.Vector(cx, cy, ft - 1)))
     solid = solid.fuse(collar)
     solid = solid.fuse(four_posts(cx, cy, p["cam_hole_dx"], p["cam_hole_dy"], ft,
                                   p["cam_post_h"], p["cam_post_d"], p["cam_pilot_d"]))
-    # Pi Zero 2 W posts
-    for (x, y) in p["pi_posts"]:
-        solid = solid.fuse(post(x, y, ft, p["pi_post_h"], p["pi_post_d"],
-                                p["pi_pilot_d"], min(8.0, p["pi_post_h"] - 1.0)))
+    # main trap-PCB posts (the Pi Zero stacks onto the trap board above)
+    for (x, y) in p["main_posts"]:
+        solid = solid.fuse(post(x, y, ft, p["main_post_h"], p["main_post_d"],
+                                p["main_pilot_d"], min(8.0, p["main_post_h"] - 1.0)))
 
     return solid.removeSplitter()
 

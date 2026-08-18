@@ -23,14 +23,14 @@ Everything lives **inside** the body. Measured off the actual boards:
 
 | Part | Where it goes | How |
 |---|---|---|
-| **IR board** (batwing X, 81 × 98.4 — exact from the PcbDoc) | On a **smart elevation**: M3 posts at its real holes (0,−6.5)/(0,−29.1) + centreline rest posts + a perimeter ledge, 5 mm up | The floor has **wing-shaped windows that the LED fields fill tightly** — only the diode zones and the light sensor are open. The centre strip (logo, mount holes, the JST pins, the sensor legs) stays over solid floor, and the 5 mm lift gives every spike free air — the ledge is gapped right where the JST pins hang |
+| **IR board** (batwing X, 81 × 98.4 — exact from the PcbDoc) | **Flush on the floor** — two M3 screws through its real holes (0,−6.5)/(0,−29.1) into floor pilots clamp it down | The floor has **wing-shaped windows that the LED fields fill tightly** — only the diode zones and the light sensor are open. The centre strip (logo, mount holes, the JST pins, the sensor legs) stays over solid floor, and the board **seals its own opening**: LEDs drop into the windows, the sensor into its hole, the JST pin fields into through-pockets. Silicone/foam on the strip makes it airtight |
 | **Light sensor** (VT90N1 at (0,+6.3) — from the PcbDoc) | Its own Ø8 window in the solid strip | Reads ambient light straight down |
 | **Camera** (Pi V2 **or** V3 — same 21 × 12.5 mm holes) | **Inside the board's camera slot** (37 mm wide, camera is 25) on 3 mm posts | Lens looks down a Ø12 hole that clears both V2 and V3 barrels, ringed by a baffle collar so IR can't glare into it |
-| **Pi Zero 2 W** | Portrait, on 13 mm posts **above** the IR board | Official 58 × 23 hole pattern; posts clear the board outline and the camera. Full-size Pi pattern is in a comment |
+| **Main trap PCB** (82 × 40, holes 58 × 23 — exact from its PcbDoc) | Across the body on 10 mm posts above the flush IR board | Upper posts stand in the camera slot, lower ones below the board's bottom edge; the **Pi Zero stacks onto the trap PCB's own 58 × 23 pattern** |
 
-> **Sealing:** one rectangular **clear acrylic sheet (106 × 96 × 2 mm)** drops
-> into a rebate on the underside and is siliconed in — it closes every floor
-> opening (wing windows, sensor hole, camera hole) in one go. Cheap to buy,
+> **Sealing:** one rectangular **clear acrylic sheet (106 × 96 × 2 mm)** sits in a
+> **frame under the floor**, its face 2 mm down — clear of the LED domes and
+> pins hanging through — and closes every floor opening in one go. Cheap to buy,
 > two straight cuts to make.
 
 The board keeps **~1.5–6 mm wiggle room** to the cavity wall all the way round —
@@ -51,7 +51,7 @@ solid). Current output:
 
 | Part | Size | Volume |
 |---|---|---|
-| `belly` | 135 × 185 × 47 mm | ~140 cm³ |
+| `belly` | 135 × 185 × 53 mm | ~195 cm³ |
 | `shell` | 136 × 186 × 58 mm | ~176 cm³ |
 | `leg_segment` | 9.5 × 9.5 × 33 mm (25 + peg) | 1.8 cm³ |
 | `leg_segment_half` | 9.5 × 9.5 × 20.5 mm | 0.7 cm³ |
@@ -85,7 +85,7 @@ in, because the joint is a labyrinth:
 Two things you still add by hand:
 
 1. **The clear sheet.** Cut a 106 × 96 mm rectangle of 2 mm acrylic (round
-   the corners roughly to R8 with a file), bed it into the underside rebate on
+   the corners roughly to R8 with a file), bed it into the under-floor frame on
    a bead of clear silicone. That seals every floor opening at once.
 2. **A vent.** A fully sealed box breathes with temperature and sucks moisture
    past any seal. Stick a small square of PTFE/Gore vent tape over a 3 mm hole
@@ -146,7 +146,7 @@ re-run. The ones you'll actually touch:
 | `win_inset`, `win_xmin` | Wing-window fit: rim width and solid-strip width |
 | `cam_pos`, `cam_lens_d` | Camera lens hole (Ø12 clears V2 and V3) |
 | `sheet_w/l/r/th` | The one-piece clear sealing sheet |
-| `pi_posts`, `pi_post_h` | Pi Zero posts (full-size Pi pattern in the comment) |
+| `main_posts`, `main_post_h` | Trap-PCB standoffs (58 × 23 pattern, from its PcbDoc) |
 | `leg_splay`, `leg_seg_h` | Tripod angle and block height |
 | `fit` | Leg peg tightness |
 | `skirt_th`, `skirt_gap`, `tongue_w`, `tongue_h` | The seal — part 2 must match these |
@@ -162,9 +162,11 @@ re-run. The ones you'll actually touch:
 |---|---|
 | 0–3 mm | Floor, with wing windows + sensor + lens holes; clear sheet in the rebate below |
 | 3 mm | Camera posts — lens reaches down into its hole, baffle collar around it |
-| 8 mm | **IR board** on its 5 mm elevation — LED domes and solder spikes hang in free air over the windows |
-| 16 mm | **Pi Zero** on 13 mm posts — one post pair inside the camera slot, one below the board |
-| 27 mm | Seat level — the shell's skirt lands here |
+| −2 mm | Clear sheet in the under-floor frame (LED domes and pins stop ~1 mm above it) |
+| 0–3 mm | Floor — **IR board clamped flush on top**, sealing its own openings |
+| 6 mm | Camera board on 3 mm posts, lens down through the floor |
+| 13 mm | **Main trap PCB** on 10 mm posts; the Pi Zero stacks onto it above |
+| 33 mm | Seat level — the shell's skirt lands here |
 
 ## Still to design
 

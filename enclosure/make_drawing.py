@@ -157,26 +157,24 @@ ax.add_patch(Rectangle((cx - 12.5, cy - 12), 25, 24, fc="none", ec=HW, lw=0.8, l
 ax.text(cx + 15, cy + 6, "Pi cam V2/V3\n21 x 12.5 posts\nlens Ø12", fontsize=7.5, color=HW)
 # IR standoffs + rest pads
 for (mx, my) in P["ir_mounts"]:
-    ax.add_patch(Circle((ox + mx, oy + my), P["ir_post_d"] / 2, fc="#fff", ec=HW, lw=1.2, zorder=5))
+    ax.add_patch(Circle((ox + mx, oy + my), 3.0, fc="#fff", ec=HW, lw=1.2, zorder=5))
     ax.add_patch(Circle((ox + mx, oy + my), P["ir_pilot_d"] / 2, fc=HW, ec="none", zorder=6))
-for (px, py) in P["ir_rests"]:
-    ax.add_patch(Circle((ox + px, oy + py), P["ir_post_d"] / 2, fc="#fff", ec=HW, lw=1.0, ls=":", zorder=5))
-ledge_in = offset_poly(board, -P["ledge_in"])
-ax.add_patch(MplPoly(ledge_in, closed=True, fc="none", ec=HW, lw=0.7, ls=":", zorder=4))
-for (gx, gy2) in P["ledge_gaps"]:
-    ax.add_patch(Rectangle((ox + gx - P["ledge_gap_w"] / 2, oy + gy2 - P["ledge_gap_l"] / 2),
-                           P["ledge_gap_w"], P["ledge_gap_l"], fc="#fff", ec="#e67e22", lw=1.2, zorder=5))
-ax.annotate("M3 posts at the board's real holes\n(0,-6.5) and (0,-29.1)", xy=(ox, oy - 29.1), xytext=(-60, -38),
+for (gx, gy2) in P["pin_pockets"]:
+    ax.add_patch(Rectangle((ox + gx - P["pocket_w"] / 2, oy + gy2 - P["pocket_l"] / 2),
+                           P["pocket_w"], P["pocket_l"], fc="#fbe3e0", ec="#e67e22", lw=1.2, zorder=5))
+ax.annotate("M3 screws through the board's real holes\ninto floor pilots (0,-6.5) (0,-29.1)", xy=(ox, oy - 29.1), xytext=(-60, -38),
             fontsize=7.5, color=HW, arrowprops=dict(arrowstyle="-", color=HW, lw=0.7))
-ax.annotate("support ledge under board edge\n(orange gaps = JST pins)", xy=(ox - 38, oy - 20), xytext=(-88, 44),
-            fontsize=7.5, color=HW, arrowprops=dict(arrowstyle="-", color=HW, lw=0.7))
+ax.annotate("board lies FLUSH on the floor\n(orange = JST pin through-pockets)", xy=(ox - 30, oy - 44), xytext=(-88, 44),
+            fontsize=7.5, color="#e67e22", arrowprops=dict(arrowstyle="-", color="#e67e22", lw=0.7))
 # Pi Zero
-pxs = [q[0] for q in P["pi_posts"]]; pys = [q[1] for q in P["pi_posts"]]
-pcx, pcy = sum(pxs) / 4.0, sum(pys) / 4.0
-ax.add_patch(Rectangle((pcx - 15, pcy - 32.5), 30, 65, fc="none", ec="#1e8449", lw=1.0, ls="--", zorder=5))
-for (x, y) in P["pi_posts"]:
-    ax.add_patch(Circle((x, y), P["pi_post_d"] / 2, fc="#fff", ec="#1e8449", lw=1.0, zorder=5))
-ax.text(pcx - 42, pcy - 40, "Pi Zero 2 W (65 x 30)\nportrait, on %.0f mm posts\nholes 58 x 23" % P["pi_post_h"],
+pxs = [q[0] for q in P["main_posts"]]; pys = [q[1] for q in P["main_posts"]]
+pcx = sum(pxs) / 4.0
+rows = sorted(set(pys))
+byc = (rows[0] + rows[-1]) / 2.0 + 8.37        # the 58 x 23 pattern sits off-centre
+ax.add_patch(Rectangle((pcx - 20, byc - 41), 40, 82, fc="none", ec="#1e8449", lw=1.0, ls="--", zorder=5))
+for (x, y) in P["main_posts"]:
+    ax.add_patch(Circle((x, y), P["main_post_d"] / 2, fc="#fff", ec="#1e8449", lw=1.0, zorder=5))
+ax.text(pcx - 62, -74, "MAIN trap PCB 82 x 40 (exact from PcbDoc)\non %.0f mm posts, holes 58 x 23\nPi Zero stacks on top" % P["main_post_h"],
         fontsize=7.5, color="#1e8449")
 # legs
 for (x, y) in P["leg_pos"]:
@@ -233,8 +231,8 @@ seg, fh, sp = P["leg_seg_h"], P["foot_h"], math.radians(P["leg_splay"])
 rows = ["%d blocks + foot = %3.0f mm leg  (%3.0f mm clearance, feet +%2.0f mm/side)"
         % (n, n * seg + fh, (n * seg + fh) * math.cos(sp), (n * seg + fh) * math.sin(sp)) for n in (2, 3, 4, 5)]
 fig.text(0.5, 0.055,
-         "ELEVATIONS (Z from floor top):  IR board on 5 mm posts (LED + connector spikes hang free)   -   "
-         "camera on 3 mm posts, lens down into its hole   -   Pi Zero on 13 mm posts above everything\n"
+         "ELEVATIONS (Z from floor top):  IR board FLUSH on the floor, sealing its opening (LEDs+pins drop into windows/pockets; clear sheet 2 mm below)   -   "
+         "camera on 3 mm posts   -   main trap PCB on 10 mm posts, Pi Zero stacked on it\n"
          "LEG STACKS (25 mm Lego blocks, 4 legs @ 14 deg):   " + "   |   ".join(rows[:2]) + "\n"
          + " " * 56 + rows[2] + "   |   " + rows[3] + "      target: 5 blocks = 12.5 cm legs\n"
          "GEOMETRY SOURCE:  outline, mount holes, sensor + connector positions auto-extracted from IRarray-v6.1.pcbdoc",
