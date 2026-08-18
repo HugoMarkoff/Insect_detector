@@ -78,11 +78,26 @@ P = {
         (-36.00, 14.31), (-36.00, 9.07), (-40.47, 4.60), (-40.50, 4.52),
     ],
     "ir_center":    (0.0, 0.0),
-    # windows: the LED wing zones. Window = board outline shrunk by
-    # `win_inset`, kept outside the solid centre strip |x| < `win_xmin`.
-    # (innermost LED edge is at |x|=14.9 - from the PcbDoc)
-    "win_inset":     2.5,     # rim under the board edge (outermost LED edge is 3.05 in)
-    "win_xmin":     14.2,
+    # windows: ONE RECTANGLE PER LED at the exact PcbDoc positions (all 48
+    # are LED_2835 rotated 270 deg -> the 3.5 mm axis runs along Y). Close
+    # diagonal pairs merge into zigzag slots; everywhere else (JST fields,
+    # solder, logo, traces) the floor stays solid under the board.
+    "led_list": [
+        (-35.15, -33.35), (35.25, -33.35), (-26.0, -30.85), (26.1, -30.85),
+        (-16.7, -27.35), (16.8, -27.35), (-35.15, -24.85), (35.25, -24.85),
+        (-26.0, -21.85), (26.1, -21.85), (-16.7, -18.85), (16.8, -18.85),
+        (-35.15, -16.05), (35.25, -16.05), (-26.0, -13.05), (26.1, -13.05),
+        (-16.7, -10.35), (16.8, -10.35), (-35.15, -7.35), (35.25, -7.35),
+        (-26.0, -6.15), (26.1, -6.15), (-26.0, 2.65), (26.1, 2.65),
+        (-35.15, 5.45), (35.25, 5.45), (-26.0, 11.35), (26.1, 11.35),
+        (-35.15, 18.25), (-26.0, 18.25), (26.1, 18.25), (35.25, 18.25),
+        (-30.45, 22.1), (30.55, 22.1), (-35.15, 25.25), (35.25, 25.25),
+        (-26.0, 26.75), (26.1, 26.75), (-30.45, 30.6), (30.55, 30.6),
+        (-35.15, 34.25), (35.25, 34.25), (-26.0, 35.25), (26.1, 35.25),
+        (-30.45, 39.1), (30.55, 39.1), (-35.15, 43.25), (35.25, 43.25),
+    ],
+    "ledwin_w":      5.0,          # slot width (package is 2.8 across)
+    "led_margin":    2.6,          # slot extends this past the end LEDs
     # centreline mounting holes + light sensor: EXACT from the PcbDoc.
     "ir_mounts":  [(0.0, -6.50), (0.0, -29.06)],   # 2x plated 3.0 mm holes
     "sensor_pos":   (0.0, 6.30),   # R30, VT90N1 photoresistor (through-hole)
@@ -107,18 +122,20 @@ P = {
     #     housing pokes out the bottom. Both boards are 25 x 24 with the same
     #     21 x 12.5 holes; the lens sits on the hole-pattern centre, offset
     #     ~3.5 mm toward one board edge.
-    "cam_pos":      (0.0, 30.0),   # lens/housing centre (inside the board slot)
+    "cam_pos":      (0.0, 32.0),   # lens/housing centre (moved up in the slot)
     "cam_board_w":  25.0,
     "cam_board_l":  24.0,
     "cam_board_off": -3.5,         # board centre relative to the lens (Y)
     "cam_fit":       0.4,          # pocket clearance - the "tight fit" number
     "cam_pocket_d":  1.2,          # board drops in flush (board is ~1.0 thick)
-    "cam_cut_sq":   11.0,          # square housing cutout: housing ~9.2 (V3)
-    #                                / ~8.5 (V2) + 1-2 mm of free space
+    "cam_cut_sq":   13.0,          # square housing cutout - passes the bulkier
+    #                                Module 3 housing with room to spare
     # the sensor housing hangs on a small flex ribbon running back along the
-    # board face toward the connector - it gets its own through-slot:
-    "ribbon_w":     10.0,
-    "ribbon_len":    6.0,
+    # board face; on V2 it takes an L toward one side - the slot is wide and
+    # shifted to swallow both shapes:
+    "ribbon_w":     14.0,
+    "ribbon_len":    8.0,
+    "ribbon_dx":     1.5,          # slot shifted +X for the V2 L-bend
     "cam_hole_dx":  21.0,          # V2/V3 screw pattern
     "cam_hole_dy":  12.5,
     "cam_pin_d":     1.8,          # printed pins, a bit under the 2.2 holes
@@ -132,6 +149,16 @@ P = {
     # (no clear sheet: every opening is FILLED by its own component - the
     #  boards are the seal, and the openings face the ground anyway)
 
+    # --- battery-connector board cradle (north of the IR board) ---
+    #     sized from BattPCB-Bracket.3MF (76.5 x 12.5 x 14.6): the ~76 x 12
+    #     connector board stands on edge in two slotted posts; the battery
+    #     pack itself lives OUTSIDE, its cable entering through the gland.
+    "batt_slot_dx":  36.5,         # post centres at +-this
+    "batt_slot_y":   55.5,
+    "batt_gap":      1.9,          # board-thickness slot (1.6 board + slack)
+    "batt_post":     8.0,
+    "batt_post_h":  12.0,
+
     # --- MAIN trap PCB (ATmega): 82 x 40, four 2.8 mm holes in a 58 x 23
     #     pattern - extracted from ATMEGA328P-AU-SMT2024_N_N.PcbDoc. Mounted
     #     across the body: upper post pair stands in the camera slot, lower
@@ -139,8 +166,8 @@ P = {
     #     flush board. The Pi Zero stacks onto the trap PCB's own 58 x 23
     #     pattern above it.
     "main_posts": [(11.5, 15.6), (-11.5, 15.6), (11.5, -42.4), (-11.5, -42.4)],
-    "main_post_h":  10.0,
-    "main_post_d":   5.0,
+    "main_post_h":   6.0,          # camera is flush now, nothing tall to clear
+    "main_post_d":   7.0,          # short and stout = rigid
     "main_pilot_d":  2.2,          # M2.5
 
     # --- legs: SIX (like the real bug), splayed outward like a tripod ---
@@ -366,13 +393,22 @@ def build_belly():
     # ---- hollow the cavity
     solid = solid.cut(outline_solid(L["inset_cavity"], ft, L["tongue_top"] - ft + 2))
 
-    # ---- wing windows: LED zones only. Board outline shrunk by win_inset,
-    #      minus the solid centre strip |x| < win_xmin.
-    wings = ir_prism(-1.0, ft + 2.0, grow=-p["win_inset"])
-    half = 400.0
-    keep_r = Part.makeBox(half, 2 * half, ft + 4, App.Vector(ox + p["win_xmin"], -half, -1.5))
-    keep_l = Part.makeBox(half, 2 * half, ft + 4, App.Vector(ox - p["win_xmin"] - half, -half, -1.5))
-    solid = solid.cut(wings.common(keep_r)).cut(wings.common(keep_l))
+    # ---- LED windows: one SLOT per LED column (grouped by x), sized to the
+    #      exact LED run in that column. Touching columns merge cleanly -
+    #      no enclosed floor islands, nothing cut where there is no LED.
+    cols = {}
+    for (lx, ly) in p["led_list"]:
+        key = round(lx * 2.0) / 2.0
+        cols.setdefault(key, []).append((lx, ly))
+    wins = None
+    for key, pts2 in cols.items():
+        lx = sum(q[0] for q in pts2) / len(pts2)
+        y0 = min(q[1] for q in pts2) - p["led_margin"]
+        y1 = max(q[1] for q in pts2) + p["led_margin"]
+        b = Part.makeBox(p["ledwin_w"], y1 - y0, ft + 2.0,
+                         App.Vector(ox + lx - p["ledwin_w"] / 2.0, oy + y0, -1.0))
+        wins = b if wins is None else wins.fuse(b)
+    solid = solid.cut(wins)
 
     # ---- light-sensor window: rectangular, matching the VT90N1 body
     sx, sy = p["sensor_pos"]
@@ -389,7 +425,7 @@ def build_belly():
     solid = solid.cut(Part.makeBox(sq, sq, ft + 2.0, App.Vector(cx - sq / 2.0, cy - sq / 2.0, -1.0)))
     # the housing's flex-ribbon slot, running south from the cutout
     solid = solid.cut(Part.makeBox(p["ribbon_w"], p["ribbon_len"] + 1.0, ft + 2.0,
-                                   App.Vector(cx - p["ribbon_w"] / 2.0,
+                                   App.Vector(cx + p["ribbon_dx"] - p["ribbon_w"] / 2.0,
                                               cy - sq / 2.0 - p["ribbon_len"], -1.0)))
     solid = solid.cut(Part.makeBox(p["ffc_w"], p["ffc_len"], p["ffc_deep"] + 0.01,
                                    App.Vector(cx - p["ffc_w"] / 2.0, pcy - pl / 2.0 - p["ffc_len"],
@@ -448,6 +484,16 @@ def build_belly():
     for (x, y) in p["main_posts"]:
         solid = solid.fuse(post(x, y, ft, p["main_post_h"], p["main_post_d"],
                                 p["main_pilot_d"], min(8.0, p["main_post_h"] - 1.0)))
+    # battery-connector board cradle: two slotted posts, board on edge
+    bp, bg = p["batt_post"], p["batt_gap"]
+    for sxb in (-1, 1):
+        bx = sxb * p["batt_slot_dx"]
+        tower = Part.makeBox(bp, bp, p["batt_post_h"],
+                             App.Vector(bx - bp / 2.0, p["batt_slot_y"] - bp / 2.0, ft))
+        tower = tower.cut(Part.makeBox(bp + 2.0, bg, p["batt_post_h"] - 2.0 + 0.1,
+                                       App.Vector(bx - bp / 2.0 - 1.0,
+                                                  p["batt_slot_y"] - bg / 2.0, ft + 2.0)))
+        solid = solid.fuse(tower)
 
     return solid.removeSplitter()
 
@@ -559,9 +605,13 @@ def build_leg_segment_half():
 
 
 def build_foot():
+    """Ball-bottom foot: the spherical base sits flat on the ground at ANY
+    leg angle and any peg orientation - no wedge alignment needed."""
     p = P
-    f = Part.makeCone(p["foot_d"] / 2.0, p["leg_out"] / 2.0, p["foot_h"], App.Vector(0, 0, 0)).fuse(_peg(p["foot_h"]))
-    return f.removeSplitter()
+    r_ball = (p["foot_d"] / 2.0) ** 2 / (2.0 * p["foot_h"]) + p["foot_h"] / 2.0
+    ball = Part.makeSphere(r_ball, App.Vector(0, 0, r_ball))
+    ball = ball.common(Part.makeBox(60, 60, p["foot_h"], App.Vector(-30, -30, 0)))
+    return ball.fuse(_peg(p["foot_h"])).removeSplitter()
 
 
 # =====================================================================

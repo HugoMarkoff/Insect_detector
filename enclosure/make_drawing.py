@@ -85,8 +85,6 @@ ins_ton = ins_reb + P["gutter_w"]
 ins_cav = ins_ton + P["tongue_w"]
 ox, oy = P["ir_center"]
 board = [(ox + x, oy + y) for x, y in P["ir_outline"]]
-win_r = clip_halfplane(offset_poly(board, -P["win_inset"]), 1, ox + P["win_xmin"])
-win_l = clip_halfplane(offset_poly(board, -P["win_inset"]), -1, -(ox - P["win_xmin"]))
 
 
 def dim_h(ax, x1, x2, y, label, color=DIM):
@@ -137,9 +135,17 @@ body_patches(ax)
 for inset, ls, lw in [(ins_reb, ":", 0.8), (ins_ton, "-", 0.8), (ins_cav, "-", 1.1)]:
     ax.add_patch(Ellipse((0, 0), 2 * (A - inset), 2 * (B - inset), fc="#faf9f5" if inset == ins_cav else "none",
                          ec=SOFT, ls=ls, lw=lw, zorder=2))
-# windows (through-cuts)
-for w in (win_r, win_l):
-    ax.add_patch(MplPoly(w, closed=True, fc="#fbe3e0", ec=DIM, lw=1.2, zorder=3))
+# LED windows: one slot per LED column (exact PcbDoc positions)
+cols = {}
+for (lx, ly) in P["led_list"]:
+    cols.setdefault(round(lx * 2) / 2, []).append((lx, ly))
+led_slots = [(sum(q[0] for q in v) / len(v), min(q[1] for q in v) - P["led_margin"],
+              max(q[1] for q in v) + P["led_margin"]) for v in cols.values()]
+for (lx, y0, y1) in led_slots:
+    ax.add_patch(Rectangle((ox + lx - P["ledwin_w"] / 2, oy + y0), P["ledwin_w"], y1 - y0,
+                           fc="#fbe3e0", ec=DIM, lw=0.9, zorder=3))
+for (lx, ly) in P["led_list"]:
+    ax.add_patch(Circle((ox + lx, oy + ly), 1.1, fc="#fff", ec="#999", lw=0.5, zorder=4))
 # IR board outline
 ax.add_patch(MplPoly(board, closed=True, fc="none", ec=HW, lw=1.5, ls="--", zorder=4))
 # sensor + camera
@@ -178,6 +184,13 @@ ax.annotate("printed pins through the board's real\n3.0 mm holes - no screws, li
 ax.annotate("board lies FLUSH on the floor\n(orange = JST pin through-pockets)", xy=(ox - 30, oy - 44), xytext=(-88, 44),
             fontsize=7.5, color="#e67e22", arrowprops=dict(arrowstyle="-", color="#e67e22", lw=0.7))
 # Pi Zero
+for sxb in (-1, 1):
+    bx = sxb * P["batt_slot_dx"]
+    ax.add_patch(Rectangle((bx - P["batt_post"] / 2, P["batt_slot_y"] - P["batt_post"] / 2),
+                           P["batt_post"], P["batt_post"], fc="#fff", ec="#8e44ad", lw=1.2, zorder=5))
+ax.plot([-P["batt_slot_dx"] + 3, P["batt_slot_dx"] - 3], [P["batt_slot_y"], P["batt_slot_y"]],
+        color="#8e44ad", lw=2.0, ls="--", zorder=4)
+ax.text(-58, 66, "battery-connector board\n(~76 x 12.5, from BattPCB-Bracket)\nstands on edge in slotted posts", fontsize=7.5, color="#8e44ad")
 pxs = [q[0] for q in P["main_posts"]]; pys = [q[1] for q in P["main_posts"]]
 pcx = sum(pxs) / 4.0
 rows = sorted(set(pys))
@@ -185,7 +198,7 @@ byc = (rows[0] + rows[-1]) / 2.0 + 8.37        # the 58 x 23 pattern sits off-ce
 ax.add_patch(Rectangle((pcx - 20, byc - 41), 40, 82, fc="none", ec="#1e8449", lw=1.0, ls="--", zorder=5))
 for (x, y) in P["main_posts"]:
     ax.add_patch(Circle((x, y), P["main_post_d"] / 2, fc="#fff", ec="#1e8449", lw=1.0, zorder=5))
-ax.text(pcx - 62, -74, "MAIN trap PCB 82 x 40 (exact from PcbDoc)\non %.0f mm posts, holes 58 x 23\nPi Zero stacks on top" % P["main_post_h"],
+ax.text(pcx - 62, -74, "MAIN trap PCB 82 x 40 (exact from PcbDoc)\non %.0f mm x O%.0f rigid posts, holes 58 x 23\nPi Zero stacks on top" % (P["main_post_h"], P["main_post_d"]),
         fontsize=7.5, color="#1e8449")
 # legs
 for (x, y) in P["leg_pos"]:
@@ -210,8 +223,9 @@ ax = axes[1]
 ax.set_title("BOTTOM VIEW - underside  (projected through, same orientation)", fontsize=12, color=INK, pad=8)
 body_patches(ax)
 # sheet rebate
-for w in (win_r, win_l):
-    ax.add_patch(MplPoly(w, closed=True, fc="#fbe3e0", ec=DIM, lw=1.2, zorder=3))
+for (lx, y0, y1) in led_slots:
+    ax.add_patch(Rectangle((ox + lx - P["ledwin_w"] / 2, oy + y0), P["ledwin_w"], y1 - y0,
+                           fc="#fbe3e0", ec=DIM, lw=0.9, zorder=3))
 ax.add_patch(MplPoly(board, closed=True, fc="none", ec=HW, lw=1.0, ls="--", zorder=4))
 ax.add_patch(Rectangle((ox + sx - P["sensor_w"] / 2, oy + sy - P["sensor_l"] / 2), P["sensor_w"], P["sensor_l"],
                        fc="#fbe3e0", ec=DIM, lw=1.1, zorder=5))
@@ -231,7 +245,6 @@ for (x, y) in P["leg_pos"]:
 ax.text(0, -108, "arrows = leg splay direction, %.0f° outward" % P["leg_splay"], fontsize=8, color=DIM, ha="center")
 common_marks(ax)
 # dimensions
-dim_h(ax, -P["win_xmin"], P["win_xmin"], oy - 52, "solid strip %.0f" % (2 * P["win_xmin"]), DIM)
 dim_h(ax, P["leg_pos"][1][0], P["leg_pos"][0][0], P["leg_pos"][0][1] + 12, "front %.0f" % (2 * abs(P["leg_pos"][0][0])))
 dim_h(ax, P["leg_pos"][3][0], P["leg_pos"][2][0], P["leg_pos"][2][1] + 14, "mid %.0f" % (2 * abs(P["leg_pos"][2][0])))
 dim_h(ax, P["leg_pos"][5][0], P["leg_pos"][4][0], P["leg_pos"][4][1] - 12, "rear %.0f" % (2 * abs(P["leg_pos"][4][0])))
@@ -242,7 +255,7 @@ seg, fh, sp = P["leg_seg_h"], P["foot_h"], math.radians(P["leg_splay"])
 rows = ["%d blocks + foot = %3.0f mm leg  (%3.0f mm clearance, feet +%2.0f mm/side)"
         % (n, n * seg + fh, (n * seg + fh) * math.cos(sp), (n * seg + fh) * math.sin(sp)) for n in (2, 3, 4, 5)]
 fig.text(0.5, 0.055,
-         "ELEVATIONS (Z from floor top):  every opening OPEN below - IR board in a 1.8 mm batwing recess on 2 printed pins, camera in its 1.2 mm pocket on 4 pins, housing out the bottom   -   main trap PCB on 10 mm posts, Pi Zero stacked on it\n"
+         "ELEVATIONS (Z from floor top):  every opening OPEN below - IR board in a 1.8 mm batwing recess on 2 printed pins, camera in its 1.2 mm pocket on 4 pins, housing out the bottom   -   main trap PCB on rigid 6 mm posts, Pi Zero stacked on it\n"
          "LEG STACKS (25 mm Lego blocks, 6 legs @ 14 deg):   " + "   |   ".join(rows[:2]) + "\n"
          + " " * 56 + rows[2] + "   |   " + rows[3] + "      target: 5 blocks = 12.5 cm legs\n"
          "GEOMETRY SOURCE:  outline, mount holes, sensor + connector positions auto-extracted from IRarray-v6.1.pcbdoc",
