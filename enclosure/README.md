@@ -7,7 +7,8 @@ blocks, so the same body works at 2 cm or 15 cm off the ground.
 **Part 1 (here): the belly** — [`ladybug_belly.py`](ladybug_belly.py), a
 parametric FreeCAD script. [`make_drawing.py`](make_drawing.py) generates a
 dimensioned top/bottom drawing from the same parameters.
-Part 2 (next): the domed elytra shell that lifts off the top.
+**Part 2 (also here): the domed elytra shell** — `build_shell()` in the same
+script, so the seal dimensions can never drift apart.
 
 ![drawing](drawing.png)
 ![preview](preview.png)
@@ -51,6 +52,7 @@ solid). Current output:
 | Part | Size | Volume |
 |---|---|---|
 | `belly` | 135 × 185 × 47 mm | ~140 cm³ |
+| `shell` | 136 × 186 × 58 mm | ~176 cm³ |
 | `leg_segment` | 9.5 × 9.5 × 33 mm (25 + peg) | 1.8 cm³ |
 | `leg_segment_half` | 9.5 × 9.5 × 20.5 mm | 0.7 cm³ |
 | `foot` | 14 × 14 × 14 mm | 0.7 cm³ |
@@ -95,6 +97,7 @@ Two things you still add by hand:
 | Part | Qty | Notes |
 |---|---|---|
 | `belly` | 1 | Print as-is, belly down. The leg bosses are the only overhang and they're short — no supports needed. |
+| `shell` | 1 | Print as modelled (skirt ring down). The dome is self-supporting; the groove bridges are ~3 mm — fine. Red filament, black spots with a marker (or pause-and-swap). |
 | `leg_segment` | 20 (4 legs × 5) | 25 mm each — 5 per leg ≈ 12.5 cm legs. |
 | `leg_segment_half` | 4–8 | 12.5 mm fine-adjust blocks for slopes. |
 | `foot` | 4 | Print peg-up. |
@@ -165,7 +168,8 @@ re-run. The ones you'll actually touch:
 
 ## Still to design
 
-- [ ] The domed **elytra shell** — split along the wing line, spots as raised
-      bumps, groove matching this tongue, skirt matching this rebate.
+- [x] The domed **elytra shell** — seven-spot dome with eye bumps, skirt +
+      groove matched to the belly, four M3 tabs over the belly ears.
+      (The centre split line defeated the CAD kernel — draw it with a marker.)
 - [ ] Lens hood / dew shield around the camera port.
 - [ ] Head with the "eyes" as vent detail.

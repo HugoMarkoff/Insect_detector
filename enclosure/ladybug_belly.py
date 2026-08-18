@@ -144,6 +144,18 @@ P = {
     "ear_pilot_d":   2.6,
     "ear_h":         6.0,
 
+    # --- PART 2: the domed elytra shell (lifts off; seal matches above) ---
+    "dome_h":       42.0,          # body dome height over the spring plane
+    "head_dome_h":  16.0,          # the small head/pronotum dome
+    "shell_wall":    6.0,          # side wall at the rim (tapers to top)
+    "shell_wall_top": 3.2,
+    # seven-spot ladybird: centre spot + three mirrored pairs (body-dome XY)
+    "spots":      [(0, -20), (26, -48), (-26, -48), (44, -6), (-44, -6), (20, 20), (-20, 20)],
+    "spot_d":       14.0,
+    "spot_sink":     5.0,          # sphere centre this far under the surface
+    "eye_pos":    [(11, 84), (-11, 84)],
+    "eye_d":         6.0,
+
     # --- cable gland ---
     "gland_d":      12.0,
     "gland_boss_d": 20.0,
@@ -407,6 +419,84 @@ def build_belly():
 
 
 # =====================================================================
+# PART 2: the shell (domed elytra lid)
+# =====================================================================
+def scaled_ellipsoid(cx, cy, cz, rx, ry, rz):
+    m = App.Matrix()
+    m.A11, m.A22, m.A33 = rx, ry, rz
+    s = Part.makeSphere(1.0).transformGeometry(m)
+    s.translate(App.Vector(cx, cy, cz))
+    return s
+
+
+def build_shell():
+    """The lift-off lid. Skirt drops OUTSIDE the belly's rebate step, a groove
+    swallows the tongue, the seat ring lands on the belly seat - the same
+    labyrinth the belly was built for, driven by the same parameters."""
+    p, L = P, zlevels()
+    seat = L["seat_z"]                        # shell rests here
+    base0 = L["shoulder_z"] + 0.3             # skirt bottom (drip gap 0.3)
+    ring_top = L["tongue_top"] + 2.0
+    dome_z = ring_top - 1.0                   # dome spring plane
+    A, B = p["body_wid"] / 2.0, p["body_len"] / 2.0
+    heady = B - 6.0
+    H = p["dome_h"]
+
+    # ---- seal ring: skirt + seat + groove + inner skirt
+    ring = outline_solid(0.0, base0, ring_top - base0)
+    # void inward of the skirt, below the seat plane
+    ring = ring.cut(outline_solid(p["skirt_th"], base0 - 0.5, seat - base0 + 0.5))
+    # groove that receives the tongue (0.35 clearance each side, 0.7 above)
+    gi_out = L["inset_tongue"] - p["skirt_gap"]
+    gi_in = L["inset_cavity"] + p["skirt_gap"]
+    ring = ring.cut(outline_solid(gi_out, seat, p["tongue_h"] + 0.7).cut(
+        outline_solid(gi_in, seat - 1.0, p["tongue_h"] + 2.7)))
+    # open the interior inward of the inner skirt
+    ring = ring.cut(outline_solid(gi_in + 2.0, seat, ring_top - seat + 1.0))
+
+    # ---- dome: big body ellipsoid + small head dome
+    dome = scaled_ellipsoid(0, 0, dome_z, A, B, H)
+    dome = dome.fuse(scaled_ellipsoid(0, heady, dome_z, p["head_rx"] + 2.0, p["head_ry"] + 4.0, p["head_dome_h"]))
+    dome = dome.common(Part.makeBox(600, 600, 300, App.Vector(-300, -300, dome_z - 0.5)))
+
+    # ---- cosmetics fused BEFORE hollowing, so bumps stay solid-backed
+    def dome_surf_z(x, y):
+        u = 1.0 - (x / A) ** 2 - (y / B) ** 2
+        return dome_z + H * math.sqrt(max(u, 0.0))
+
+    for (sx2, sy2) in p["spots"]:
+        dome = dome.fuse(Part.makeSphere(p["spot_d"] / 2.0,
+                         App.Vector(sx2, sy2, dome_surf_z(sx2, sy2) - p["spot_sink"])))
+    for (ex2, ey2) in p["eye_pos"]:
+        u = 1.0 - (ex2 / (p["head_rx"] + 2.0)) ** 2 - ((ey2 - heady) / (p["head_ry"] + 4.0)) ** 2
+        ez = dome_z + p["head_dome_h"] * math.sqrt(max(u, 0.0))
+        dome = dome.fuse(Part.makeSphere(p["eye_d"] / 2.0, App.Vector(ex2, ey2, ez - p["eye_d"] / 2.0 + 1.2)))
+
+    # (the elytra split line is left to a marker pen - a surface groove cut
+    #  between three BSpline ellipsoids kept corrupting the solid)
+
+    shell = ring.fuse(dome)
+
+    # ---- hollow (kept 1.5 mm above the groove ceiling so the web survives)
+    hol = scaled_ellipsoid(0, 0, dome_z, A - p["shell_wall"], B - p["shell_wall"], H - p["shell_wall_top"])
+    hol = hol.fuse(scaled_ellipsoid(0, heady, dome_z, p["head_rx"] - 6.0, p["head_ry"] - 3.0, p["head_dome_h"] - 3.0))
+    hol = hol.common(Part.makeBox(600, 600, 300, App.Vector(-300, -300, ring_top + 0.2)))
+    shell = shell.cut(hol)
+
+    # ---- screw tabs aligned with the belly's ears (M3 clearance through)
+    for ang in p["ear_angles"]:
+        t = math.radians(ang)
+        ex, ey = A * math.cos(t), B * math.sin(t)
+        shell = shell.fuse(Part.makeCylinder(p["ear_d"] / 2.0 + 0.6, seat - base0, App.Vector(ex, ey, base0)))
+        shell = shell.cut(Part.makeCylinder(1.6, 80.0, App.Vector(ex, ey, base0 - 1.0)))
+
+    shell = shell.removeSplitter()
+    if not shell.isValid():
+        shell.fix(0.01, 0.01, 0.01)
+    return shell
+
+
+# =====================================================================
 # legs
 # =====================================================================
 def _peg(z0):
@@ -462,6 +552,7 @@ def main():
 
     doc = App.newDocument("ladybug")
     parts = [("belly", build_belly()),
+             ("shell", build_shell()),
              ("leg_segment", build_leg_segment()),
              ("leg_segment_half", build_leg_segment_half()),
              ("foot", build_foot())]
