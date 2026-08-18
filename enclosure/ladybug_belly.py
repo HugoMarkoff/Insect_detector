@@ -122,7 +122,7 @@ P = {
     #     housing pokes out the bottom. Both boards are 25 x 24 with the same
     #     21 x 12.5 holes; the lens sits on the hole-pattern centre, offset
     #     ~3.5 mm toward one board edge.
-    "cam_pos":      (0.0, 32.0),   # lens/housing centre (moved up in the slot)
+    "cam_pos":      (0.0, 36.0),   # lens/housing centre (high in the slot)
     "cam_board_w":  25.0,
     "cam_board_l":  24.0,
     "cam_board_off": -3.5,         # board centre relative to the lens (Y)
@@ -145,6 +145,16 @@ P = {
     "ffc_w":        17.0,
     "ffc_len":       3.5,
     "ffc_deep":      1.2,
+    # --- pogo interface board, riding ABOVE the camera in slide-in rails ---
+    #     numbers decoded from Cam-Insert.3MF: second board 25.3 x 38.4 in a
+    #     1.0 pocket, its seat 7.4 mm above the camera's seat -> the pogo
+    #     pins bridge ~6.4 mm and land on the camera board's back.
+    "pogo_w":       25.4,          # board width riding in the side grooves
+    "pogo_l":       38.5,
+    "pogo_dz":       7.4,          # camera seat -> pogo seat (from the insert)
+    "pogo_th":       1.4,          # groove height (1.0 board + slack)
+    "rail_y0":      20.0,          # rails run this span; board slides in
+    "rail_y1":      46.0,          #   from the head end and hits the stops
 
     # (no clear sheet: every opening is FILLED by its own component - the
     #  boards are the seal, and the openings face the ground anyway)
@@ -166,7 +176,7 @@ P = {
     #     flush board. The Pi Zero stacks onto the trap PCB's own 58 x 23
     #     pattern above it.
     "main_posts": [(11.5, 15.6), (-11.5, 15.6), (11.5, -42.4), (-11.5, -42.4)],
-    "main_post_h":   6.0,          # camera is flush now, nothing tall to clear
+    "main_post_h":   9.5,          # rides just above the pogo-board plane
     "main_post_d":   7.0,          # short and stout = rigid
     "main_pilot_d":  2.2,          # M2.5
 
@@ -484,6 +494,34 @@ def build_belly():
     for (x, y) in p["main_posts"]:
         solid = solid.fuse(post(x, y, ft, p["main_post_h"], p["main_post_d"],
                                 p["main_pilot_d"], min(8.0, p["main_post_h"] - 1.0)))
+    # pogo-board bay: C-grooved side rails + south stop tabs. The board
+    # slides in from the head end; the grooves set it exactly pogo_dz above
+    # the camera seat so the pins just touch.
+    seatz = ft - p["cam_pocket_d"] + p["pogo_dz"]          # 9.2
+    inner = p["pogo_w"] / 2.0 - 0.8                        # lip face 11.9
+    gdeep = p["pogo_w"] / 2.0 + 0.5                        # groove back 13.2
+    top = seatz + p["pogo_th"] + 1.0                       # rail top 11.6
+    for sxb in (-1, 1):
+        m = 1.0 if sxb > 0 else -1.0
+        # tower stands clear of the camera pocket (which reaches x 12.7)...
+        tx0 = 13.0 if sxb > 0 else -16.2
+        tower = Part.makeBox(3.2, p["rail_y1"] - p["rail_y0"], top - ft,
+                             App.Vector(tx0, p["rail_y0"], ft))
+        # ...and an inner lip bridges over the pocket edge, above the board
+        lx0 = inner if sxb > 0 else -13.0
+        lip = Part.makeBox(13.0 - inner, p["rail_y1"] - p["rail_y0"], top - 5.5,
+                           App.Vector(lx0, p["rail_y0"], 5.5))
+        rail = tower.fuse(lip)
+        gx0 = inner - 1.0 if sxb > 0 else -gdeep
+        groove = Part.makeBox(gdeep + 1.0 - inner, p["rail_y1"] - p["rail_y0"] + 2.0,
+                              p["pogo_th"], App.Vector(gx0, p["rail_y0"] - 1.0, seatz))
+        solid = solid.fuse(rail.cut(groove))
+        # south stop tabs (the board's edge lands on them; centre stays open
+        # for the camera FFC)
+        tab = Part.makeBox(2.5, 2.5, top - ft,
+                           App.Vector(sxb * 10.75 - 1.25, 17.6, ft))
+        solid = solid.fuse(tab)
+
     # battery-connector board cradle: two slotted posts, board on edge
     bp, bg = p["batt_post"], p["batt_gap"]
     for sxb in (-1, 1):
@@ -648,6 +686,10 @@ def main():
               % (name, bb.XLength, bb.YLength, bb.ZLength, single, shape.Volume / 1000.0))
         if not single:
             print("CHECK    !! not a single closed solid (%d solids) - fix before printing" % len(shape.Solids))
+            for s2 in shape.Solids:
+                b2 = s2.BoundBox
+                print("CHECK       solid vol=%.2f cm3  x %.1f..%.1f  y %.1f..%.1f  z %.1f..%.1f"
+                      % (s2.Volume / 1000.0, b2.XMin, b2.XMax, b2.YMin, b2.YMax, b2.ZMin, b2.ZMax))
         print("CHECK    -> " + export(shape, name, outdir))
 
     seg, foot_h = P["leg_seg_h"], P["foot_h"]

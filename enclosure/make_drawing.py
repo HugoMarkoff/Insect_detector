@@ -184,6 +184,16 @@ ax.annotate("printed pins through the board's real\n3.0 mm holes - no screws, li
 ax.annotate("board lies FLUSH on the floor\n(orange = JST pin through-pockets)", xy=(ox - 30, oy - 44), xytext=(-88, 44),
             fontsize=7.5, color="#e67e22", arrowprops=dict(arrowstyle="-", color="#e67e22", lw=0.7))
 # Pi Zero
+inner = P["pogo_w"] / 2 - 0.8
+for sxb in (-1, 1):
+    rx = inner if sxb > 0 else -(inner + 4.3)
+    ax.add_patch(Rectangle((rx, P["rail_y0"]), 4.3, P["rail_y1"] - P["rail_y0"],
+                           fc="#e8e4f4", ec="#6c3483", lw=1.0, zorder=4))
+ax.add_patch(Rectangle((-P["pogo_w"] / 2, P["rail_y0"] + 2.5), P["pogo_w"], P["pogo_l"],
+                       fc="none", ec="#6c3483", lw=1.2, ls="--", zorder=5))
+ax.annotate("pogo board (25 x 38.5) slides in from the head end;\ngrooves hold it 7.4 mm over the camera seat\n(numbers from Cam-Insert.3MF) - pins touch the camera",
+            xy=(P["pogo_w"] / 2, 40), xytext=(30, 84), fontsize=7.5, color="#6c3483",
+            arrowprops=dict(arrowstyle="-", color="#6c3483", lw=0.7))
 for sxb in (-1, 1):
     bx = sxb * P["batt_slot_dx"]
     ax.add_patch(Rectangle((bx - P["batt_post"] / 2, P["batt_slot_y"] - P["batt_post"] / 2),
@@ -198,7 +208,7 @@ byc = (rows[0] + rows[-1]) / 2.0 + 8.37        # the 58 x 23 pattern sits off-ce
 ax.add_patch(Rectangle((pcx - 20, byc - 41), 40, 82, fc="none", ec="#1e8449", lw=1.0, ls="--", zorder=5))
 for (x, y) in P["main_posts"]:
     ax.add_patch(Circle((x, y), P["main_post_d"] / 2, fc="#fff", ec="#1e8449", lw=1.0, zorder=5))
-ax.text(pcx - 62, -74, "MAIN trap PCB 82 x 40 (exact from PcbDoc)\non %.0f mm x O%.0f rigid posts, holes 58 x 23\nPi Zero stacks on top" % (P["main_post_h"], P["main_post_d"]),
+ax.text(pcx - 62, -74, "MAIN trap PCB 82 x 40 (exact from PcbDoc)\non %.1f mm x O%.0f rigid posts - OVER the pogo bay\nPi Zero stacks on top" % (P["main_post_h"], P["main_post_d"]),
         fontsize=7.5, color="#1e8449")
 # legs
 for (x, y) in P["leg_pos"]:
