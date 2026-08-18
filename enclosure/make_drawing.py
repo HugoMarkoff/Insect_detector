@@ -222,9 +222,10 @@ common_marks(ax)
 dim_h(ax, -P["sheet_w"] / 2, P["sheet_w"] / 2, P["sheet_cy"] + P["sheet_l"] / 2 + 4,
       "clear sheet %.0f x %.0f x %.0f, in %.0f mm rebate" % (P["sheet_w"], P["sheet_l"], P["sheet_th"], P["sheet_th"]), HW)
 dim_h(ax, -P["win_xmin"], P["win_xmin"], oy - 52, "solid strip %.0f" % (2 * P["win_xmin"]), DIM)
-dim_h(ax, P["leg_pos"][1][0], P["leg_pos"][0][0], P["leg_pos"][0][1] + 12, "%.0f" % (2 * abs(P["leg_pos"][0][0])))
-dim_h(ax, P["leg_pos"][3][0], P["leg_pos"][2][0], P["leg_pos"][2][1] - 12, "%.0f" % (2 * abs(P["leg_pos"][2][0])))
-dim_v(ax, P["leg_pos"][2][1], P["leg_pos"][0][1], A + 10, "leg rows Y %+.0f / %+.0f" % (P["leg_pos"][0][1], P["leg_pos"][2][1]))
+dim_h(ax, P["leg_pos"][1][0], P["leg_pos"][0][0], P["leg_pos"][0][1] + 12, "front %.0f" % (2 * abs(P["leg_pos"][0][0])))
+dim_h(ax, P["leg_pos"][3][0], P["leg_pos"][2][0], P["leg_pos"][2][1] + 14, "mid %.0f" % (2 * abs(P["leg_pos"][2][0])))
+dim_h(ax, P["leg_pos"][5][0], P["leg_pos"][4][0], P["leg_pos"][4][1] - 12, "rear %.0f" % (2 * abs(P["leg_pos"][4][0])))
+dim_v(ax, P["leg_pos"][4][1], P["leg_pos"][0][1], A + 10, "leg rows Y %+.0f / 0 / %+.0f" % (P["leg_pos"][0][1], P["leg_pos"][4][1]))
 
 # ------------------------------------------------ footer spec text ---------
 seg, fh, sp = P["leg_seg_h"], P["foot_h"], math.radians(P["leg_splay"])
@@ -233,7 +234,7 @@ rows = ["%d blocks + foot = %3.0f mm leg  (%3.0f mm clearance, feet +%2.0f mm/si
 fig.text(0.5, 0.055,
          "ELEVATIONS (Z from floor top):  IR board FLUSH on the floor, sealing its opening (LEDs+pins drop into windows/pockets; clear sheet 2 mm below)   -   "
          "camera on 3 mm posts   -   main trap PCB on 10 mm posts, Pi Zero stacked on it\n"
-         "LEG STACKS (25 mm Lego blocks, 4 legs @ 14 deg):   " + "   |   ".join(rows[:2]) + "\n"
+         "LEG STACKS (25 mm Lego blocks, 6 legs @ 20 deg):   " + "   |   ".join(rows[:2]) + "\n"
          + " " * 56 + rows[2] + "   |   " + rows[3] + "      target: 5 blocks = 12.5 cm legs\n"
          "GEOMETRY SOURCE:  outline, mount holes, sensor + connector positions auto-extracted from IRarray-v6.1.pcbdoc",
          ha="center", va="bottom", fontsize=9, color=INK, family="monospace")

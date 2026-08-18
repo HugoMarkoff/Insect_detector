@@ -108,7 +108,7 @@ P = {
     "collar_h":      2.5,
 
     # --- one rectangular clear sheet seals ALL openings (underside rebate) ---
-    "sheet_w":     106.0,
+    "sheet_w":      90.0,   # covers the windows (x +-38) and pin pockets (x +-39.7)
     "sheet_l":      96.0,
     "sheet_r":       8.0,          # corner radius
     "sheet_cy":     -1.0,          # rebate centre offset (Y)
@@ -116,7 +116,7 @@ P = {
     # the sheet lives in a frame UNDER the floor, its face 2 mm down, so the
     # LED domes / pins hanging through the openings never touch it
     "frame_drop":    4.0,
-    "frame_wall":    2.4,
+    "frame_wall":    2.0,
     "frame_lip":     3.0,
 
     # --- MAIN trap PCB (ATmega): 82 x 40, four 2.8 mm holes in a 58 x 23
@@ -130,9 +130,11 @@ P = {
     "main_post_d":   5.0,
     "main_pilot_d":  2.2,          # M2.5
 
-    # --- legs: FOUR, splayed outward like a tripod ---
-    "leg_pos":     [(34, 58), (-34, 58), (38, -57), (-38, -57)],
-    "leg_splay":    14.0,          # degrees outward
+    # --- legs: SIX (like the real bug), splayed outward like a tripod ---
+    #     front pair, middle side pair, rear pair. 20 deg keeps the legs out
+    #     of the camera frame to ~0.5 m of height without a silly stance.
+    "leg_pos":     [(32, 56), (-32, 56), (52, 0), (-52, 0), (34, -57), (-34, -57)],
+    "leg_splay":    20.0,          # degrees outward
     "socket_od":    14.0,
     "socket_drop":  13.0,
     "socket_sq":     7.4,

@@ -28,7 +28,7 @@ Everything lives **inside** the body. Measured off the actual boards:
 | **Camera** (Pi V2 **or** V3 — same 21 × 12.5 mm holes) | **Inside the board's camera slot** (37 mm wide, camera is 25) on 3 mm posts | Lens looks down a Ø12 hole that clears both V2 and V3 barrels, ringed by a baffle collar so IR can't glare into it |
 | **Main trap PCB** (82 × 40, holes 58 × 23 — exact from its PcbDoc) | Across the body on 10 mm posts above the flush IR board | Upper posts stand in the camera slot, lower ones below the board's bottom edge; the **Pi Zero stacks onto the trap PCB's own 58 × 23 pattern** |
 
-> **Sealing:** one rectangular **clear acrylic sheet (106 × 96 × 2 mm)** sits in a
+> **Sealing:** one rectangular **clear acrylic sheet (90 × 96 × 2 mm)** sits in a
 > **frame under the floor**, its face 2 mm down — clear of the LED domes and
 > pins hanging through — and closes every floor opening in one go. Cheap to buy,
 > two straight cuts to make.
@@ -84,7 +84,7 @@ in, because the joint is a labyrinth:
 
 Two things you still add by hand:
 
-1. **The clear sheet.** Cut a 106 × 96 mm rectangle of 2 mm acrylic (round
+1. **The clear sheet.** Cut a 90 × 96 mm rectangle of 2 mm acrylic (round
    the corners roughly to R8 with a file), bed it into the under-floor frame on
    a bead of clear silicone. That seals every floor opening at once.
 2. **A vent.** A fully sealed box breathes with temperature and sucks moisture
@@ -98,9 +98,9 @@ Two things you still add by hand:
 |---|---|---|
 | `belly` | 1 | Print as-is, belly down. The leg bosses are the only overhang and they're short — no supports needed. |
 | `shell` | 1 | Print as modelled (skirt ring down). The dome is self-supporting; the groove bridges are ~3 mm — fine. Red filament, black spots with a marker (or pause-and-swap). |
-| `leg_segment` | 20 (4 legs × 5) | 25 mm each — 5 per leg ≈ 12.5 cm legs. |
+| `leg_segment` | 30 (6 legs × 5) | 25 mm each — 5 per leg ≈ 12.5 cm legs. |
 | `leg_segment_half` | 4–8 | 12.5 mm fine-adjust blocks for slopes. |
-| `foot` | 4 | Print peg-up. |
+| `foot` | 6 | Print peg-up. |
 
 0.2 mm layers, 3 perimeters, 20–30 % infill. **PETG or ASA if it lives
 outdoors** — PLA sags in a sun-baked enclosure. TPU feet grip better and damp
@@ -112,7 +112,8 @@ vibration.
 
 ## Height adjustment (the Lego bit)
 
-**Four legs, tilted 14° outward like a tripod** — the belly sockets are angled,
+**Six legs — front, middle and rear pairs — tilted 20° outward** like a
+tripod; the belly sockets are angled,
 so the taller you stack, the wider the stance. Every `leg_segment` adds **25 mm**
 along the leg:
 
@@ -122,12 +123,16 @@ belly socket (14° out) → [block] → [block] → ... → [foot]
 
 | Blocks per leg | Leg length | Ground clearance | Feet spread |
 |---|---|---|---|
-| 2 | 56 mm | 54 mm | +14 mm/side |
-| 3 | 81 mm | 79 mm | +20 mm/side |
-| 4 | 106 mm | 103 mm | +26 mm/side |
-| **5** | **131 mm ≈ 12.5 cm** | **127 mm** | **+32 mm/side** |
+| 2 | 56 mm | 53 mm | +19 mm/side |
+| 3 | 81 mm | 76 mm | +28 mm/side |
+| 4 | 106 mm | 100 mm | +36 mm/side |
+| **5** | **131 mm ≈ 12.5 cm** | **123 mm** | **+45 mm/side** |
 
 - **Square pegs** mean the legs can't rotate — the splay angle stays put.
+- **Why 20°?** The camera sees ~62° × 49°. At 20° the legs stay ahead of the
+  picture's edges for the first ~half metre of lift; at 1 m only the far-away
+  feet clip the extreme corners. Steeper doubles the stance for little gain;
+  shallower puts legs in frame from ~15 cm up.
 - Stack the downhill legs taller (use the half blocks) to stand level on a slope.
 
 **Camera height is your focus knob.** The IMX708 won't focus closer than ~10 cm,
