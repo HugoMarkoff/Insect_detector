@@ -86,7 +86,9 @@ P = {
     # centreline mounting holes + light sensor: EXACT from the PcbDoc.
     "ir_mounts":  [(0.0, -6.50), (0.0, -29.06)],   # 2x plated 3.0 mm holes
     "sensor_pos":   (0.0, 6.30),   # R30, VT90N1 photoresistor (through-hole)
-    "sensor_hole_d": 8.0,
+    # the VT90N1 is a RECTANGULAR CdS cell (~5 x 4 body, leads at x +-1.27):
+    "sensor_w":      6.2,          # window matches the body + fit clearance
+    "sensor_l":      5.2,
     "ir_pilot_d":    2.5,          # M3 self-tap into the floor (board holes 3.0)
     # The board lies FLUSH on the floor and seals its own opening. Everything
     # poking from its bottom face gets somewhere to go: LEDs into the wing
@@ -106,8 +108,12 @@ P = {
     "cam_board_off": -3.5,         # board centre relative to the lens (Y)
     "cam_fit":       0.4,          # pocket clearance - the "tight fit" number
     "cam_pocket_d":  1.2,          # board drops in flush (board is ~1.0 thick)
-    "cam_cut_sq":    9.8,          # square housing cutout: V3 ~9.2 fits snug,
-    #                                for V2 (~8.5) print 9.0 or shim with tape
+    "cam_cut_sq":   11.0,          # square housing cutout: housing ~9.2 (V3)
+    #                                / ~8.5 (V2) + 1-2 mm of free space
+    # the sensor housing hangs on a small flex ribbon running back along the
+    # board face toward the connector - it gets its own through-slot:
+    "ribbon_w":     10.0,
+    "ribbon_len":    6.0,
     "cam_hole_dx":  21.0,          # V2/V3 screw pattern
     "cam_hole_dy":  12.5,
     "cam_pilot_d":   1.7,          # M2 self-tap into the pocket floor
@@ -362,9 +368,11 @@ def build_belly():
     keep_l = Part.makeBox(half, 2 * half, ft + 4, App.Vector(ox - p["win_xmin"] - half, -half, -1.5))
     solid = solid.cut(wings.common(keep_r)).cut(wings.common(keep_l))
 
-    # ---- light-sensor window (sensor is an SMD on the board's bottom face)
+    # ---- light-sensor window: rectangular, matching the VT90N1 body
     sx, sy = p["sensor_pos"]
-    solid = solid.cut(Part.makeCylinder(p["sensor_hole_d"] / 2.0, ft + 2, App.Vector(ox + sx, oy + sy, -1)))
+    solid = solid.cut(Part.makeBox(p["sensor_w"], p["sensor_l"], ft + 2.0,
+                                   App.Vector(ox + sx - p["sensor_w"] / 2.0,
+                                              oy + sy - p["sensor_l"] / 2.0, -1.0)))
 
     # ---- camera: flush pocket + square housing cutout + FFC trench + pilots
     pw, pl = p["cam_board_w"] + p["cam_fit"], p["cam_board_l"] + p["cam_fit"]
@@ -373,6 +381,10 @@ def build_belly():
                                    App.Vector(cx - pw / 2.0, pcy - pl / 2.0, ft - p["cam_pocket_d"])))
     sq = p["cam_cut_sq"]
     solid = solid.cut(Part.makeBox(sq, sq, ft + 2.0, App.Vector(cx - sq / 2.0, cy - sq / 2.0, -1.0)))
+    # the housing's flex-ribbon slot, running south from the cutout
+    solid = solid.cut(Part.makeBox(p["ribbon_w"], p["ribbon_len"] + 1.0, ft + 2.0,
+                                   App.Vector(cx - p["ribbon_w"] / 2.0,
+                                              cy - sq / 2.0 - p["ribbon_len"], -1.0)))
     solid = solid.cut(Part.makeBox(p["ffc_w"], p["ffc_len"], p["ffc_deep"] + 0.01,
                                    App.Vector(cx - p["ffc_w"] / 2.0, pcy - pl / 2.0 - p["ffc_len"],
                                               ft - p["ffc_deep"])))
