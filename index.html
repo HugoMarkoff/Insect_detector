@@ -136,7 +136,10 @@
 <div class="lb" id="lb" onclick="if(event.target.id==='lb')closeLB()">
   <div class="lcap" id="lbcap"></div>
   <button onclick="closeLB()" aria-label="Close">✕</button>
-  <img id="lbImg" alt="capture">
+  <div style="position:relative;display:inline-block">
+    <img id="lbImg" alt="capture">
+    <div id="lbBoxes" style="position:absolute;inset:0;pointer-events:none"></div>
+  </div>
 </div>
 
 <script>
@@ -215,7 +218,7 @@ function renderStatus(){
 function card(f,ins){
   return `<figure class="thumb ${f.insect?'ins':''}" onclick="lightbox('${f.name}')">
     <img loading="lazy" src="${url(f.name)}" alt="${pretty(f.name)}">
-    <figcaption><span>${pretty(f.name).slice(11)}</span>${f.insect?'<span class="tag">🐛</span>':''}</figcaption></figure>`;
+    <figcaption><span>${pretty(f.name).slice(11)}</span>${f.boxes?'<span class="tag">📦</span>':(f.insect?'<span class="tag">🐛</span>':'')}</figcaption></figure>`;
 }
 
 // ---- player: one MP4 built on the Pi, refreshed only when it grew ----
@@ -237,7 +240,14 @@ function setRate(r){ document.getElementById('stageVid').playbackRate=+r; }
 
 // ---- lightbox ----
 function lightbox(name){document.getElementById('lbImg').src=url(name);
-  document.getElementById('lbcap').textContent=pretty(name);document.getElementById('lb').classList.add('open');}
+  document.getElementById('lbcap').textContent=pretty(name);
+  const bx=document.getElementById('lbBoxes'); bx.innerHTML='';
+  const f=frames.find(x=>x.name===name);
+  (f&&f.boxes||[]).forEach(b=>{const d=document.createElement('div');
+    d.style.cssText=`position:absolute;border:2px solid #ffd23f;border-radius:3px;`+
+      `left:${b.x*100}%;top:${b.y*100}%;width:${b.w*100}%;height:${b.h*100}%`;
+    bx.appendChild(d);});
+  document.getElementById('lb').classList.add('open');}
 function closeLB(){document.getElementById('lb').classList.remove('open');}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLB();});
 
