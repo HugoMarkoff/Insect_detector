@@ -187,17 +187,20 @@ P = {
     #     as you like. Chunky sections + long pegs = stiff stacks.
     "leg_pos":     [(32, 56), (-32, 56), (52, 0), (-52, 0), (33, -56), (-33, -56)],
     "leg_splay":    14.0,          # degrees outward - enough to stay out of frame, not silly
-    "socket_od":    19.0,          # round belly boss
-    "socket_drop":  14.0,
-    "socket_sq":     8.3,          # THE standard square hole (peg 8.0 + fit)
-    "socket_depth": 13.0,          # blind - never breaks into the dry side
+    "socket_od":    16.0,          # round belly boss (the "hip")
+    "socket_drop":  13.0,
+    "socket_sq":     7.6,          # socket = peg 7.0 + 0.6 easy-connect wiggle
+    "socket_r":      1.5,          # rounded socket corners (thicker walls)
+    "socket_depth": 11.0,          # blind - never breaks into the dry side
     "leg_seg_h":    25.0,          # one block = +25 mm (5 blocks ~ 12.5 cm leg)
-    "leg_d":        17.0,          # round block - ~6x stiffer than the old stick
-    "peg_sq":        8.0,          # straight square peg (chamfer tip only)
-    "peg_h":        12.0,          # 12 mm engagement - joints stay tight
-    "fit":           0.30,         # peg clearance - TUNE THIS on a test print
-    "foot_h":        7.0,
-    "foot_d":       20.0,
+    "leg_d":        13.0,          # round block, proportional to the body
+    "peg_sq":        7.0,          # straight peg, rounded corners - also fits
+    #                                earlier-printed bellies (7.4 sockets)
+    "peg_r":         1.2,
+    "peg_h":        10.0,          # 10 mm engagement
+    "fit":           0.60,         # TOTAL wiggle (socket 7.6 - peg 7.0)
+    "foot_h":        6.5,
+    "foot_d":       16.0,
 
     # --- lid screw ears (outside the seal) ---
     "ear_angles":  [15, 165, 195, 345],
@@ -360,8 +363,7 @@ def leg_socket(x, y, splay, solid):
         shape = Part.makeCylinder(p["socket_od"] / 2.0, drop + 40.0, App.Vector(0, 0, -drop))
     else:
         sq = p["socket_sq"]
-        shape = Part.makeBox(sq, sq, p["socket_depth"] + 0.01,
-                             App.Vector(-sq / 2.0, -sq / 2.0, -drop - 0.01))
+        shape = rrect(0.0, 0.0, sq, sq, p["socket_r"], -drop - 0.01, p["socket_depth"] + 0.01)
     r = math.hypot(x, y) or 1.0
     axis = App.Vector(-y / r, x / r, 0)          # tilt in the radial plane
     shape.rotate(App.Vector(0, 0, ft), axis, -splay)
@@ -621,14 +623,14 @@ def build_shell():
 # legs
 # =====================================================================
 def _peg(z0):
-    """Straight square peg with a short chamfered tip - squarish and true,
-    starting 0.6 inside the parent so the fuse is solid."""
+    """Straight rounded-square peg with a short pyramid guide tip, starting
+    0.6 inside the parent so the fuse is solid."""
     p = P
-    s, t = p["peg_sq"], p["peg_sq"] - 2.5
-    straight = Part.makeBox(s, s, p["peg_h"] - 1.5 + 0.6,
-                            App.Vector(-s / 2.0, -s / 2.0, z0 - 0.6))
-    bot = Part.makeBox(s, s, 0.01, App.Vector(-s / 2.0, -s / 2.0, z0 + p["peg_h"] - 2.1))
-    top = Part.makeBox(t, t, 0.01, App.Vector(-t / 2.0, -t / 2.0, z0 + p["peg_h"]))
+    s = p["peg_sq"]
+    straight = rrect(0.0, 0.0, s, s, p["peg_r"], z0 - 0.6, p["peg_h"] - 1.2 + 0.6)
+    t0, t1 = s - 0.7, s - 2.4
+    bot = Part.makeBox(t0, t0, 0.01, App.Vector(-t0 / 2.0, -t0 / 2.0, z0 + p["peg_h"] - 1.8))
+    top = Part.makeBox(t1, t1, 0.01, App.Vector(-t1 / 2.0, -t1 / 2.0, z0 + p["peg_h"]))
     tip = Part.makeLoft([bot.Faces[0].OuterWire, top.Faces[0].OuterWire], True)
     return straight.fuse(tip).removeSplitter()
 
@@ -637,7 +639,7 @@ def _block(h):
     p = P
     body = Part.makeCylinder(p["leg_d"] / 2.0, h).fuse(_peg(h))
     s = p["peg_sq"] + p["fit"]
-    sock = Part.makeBox(s, s, p["peg_h"] + 0.6, App.Vector(-s / 2.0, -s / 2.0, -0.01))
+    sock = rrect(0.0, 0.0, s, s, p["socket_r"], -0.01, p["peg_h"] + 0.6)
     return body.cut(sock).removeSplitter()
 
 

@@ -53,9 +53,9 @@ solid). Current output:
 |---|---|---|
 | `belly` | 135 × 185 × 53 mm | ~195 cm³ |
 | `shell` | 136 × 186 × 58 mm | ~176 cm³ |
-| `leg_segment` | Ø17 × 37 mm (25 body + 12 peg) | 5.5 cm³ |
-| `leg_segment_half` | Ø17 × 26.5 mm (14.5 body) | 3.1 cm³ |
-| `foot` | Ø20 ball × 19 mm | 2.0 cm³ |
+| `leg_segment` | Ø13 × 35 mm (25 body + 10 peg) | 3.1 cm³ |
+| `leg_segment_half` | Ø13 × 22.5 mm | 1.5 cm³ |
+| `foot` | Ø16 ball × 16.5 mm | 1.2 cm³ |
 
 ## The waterproof lid ("lift") — how the seal works
 
@@ -108,17 +108,19 @@ outdoors** — PLA sags in a sun-baked enclosure. TPU feet grip better and damp
 vibration.
 
 > **Print one `leg_segment` + one `foot` first** and check the peg grip. Too
-> loose → lower `fit` (0.20–0.25). Too tight → raise it (0.35–0.40). Printer
+> loose → lower `fit` (0.4–0.5). Too tight → raise it (0.7–0.8). Printer
 > tolerance varies more than the model does; this one number is the whole trick.
 
 ## Height adjustment (the Lego bit)
 
 **Six legs — front, middle and rear pairs — tilted 14° outward** like a
-tripod. The system is LEGO-simple: **round parts outside (Ø17 blocks, Ø19
-belly bosses, Ø20 ball feet), ONE standard 8 mm square hole inside** — every
-peg fits every socket, in any order, extended as many times as you like. Pegs
-are straight-sided with 12 mm engagement and blocks butt face-to-face, so
-tall stacks stay stiff instead of wobbling up. The belly sockets are angled,
+tripod. The system is LEGO-simple: **round parts outside (Ø13 blocks, Ø16
+belly bosses, Ø16 ball feet), ONE standard square hole inside** — a straight
+7.0 mm peg in a 7.6 mm rounded-corner socket, so every peg drops into every
+socket with an easy 0.6 mm of wiggle, in any order, extended as many times as
+you like. (The 7.0 peg also still fits bellies printed with the earlier 7.4
+sockets.) 10 mm engagement + blocks butting face-to-face keep tall stacks
+stiff instead of wobbling up. The belly sockets are angled,
 so the taller you stack, the wider the stance. Every `leg_segment` adds **25 mm**
 along the leg:
 
