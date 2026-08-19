@@ -55,9 +55,10 @@ I2C_ADDR = 0x08
 IR_PIN = 0                           # CMD_SET_OUTPUT pin id 0 = IR/flash (D5)
 WIDTH = _int_env("TIMELAPSE_WIDTH", 4608)                   # DAY resolution: the
 HEIGHT = _int_env("TIMELAPSE_HEIGHT", 2592)                 #   IMX708's full 12 MP
-NIGHT_WIDTH = _int_env("TIMELAPSE_NIGHT_WIDTH", 2304)       # NIGHT: the 2x2-binned
-NIGHT_HEIGHT = _int_env("TIMELAPSE_NIGHT_HEIGHT", 1296)     #   mode - binning gathers
-#   4x the light per pixel, so dark frames come out cleaner than full-res would
+NIGHT_WIDTH = _int_env("TIMELAPSE_NIGHT_WIDTH", 4608)      # NIGHT: full 12 MP too.
+NIGHT_HEIGHT = _int_env("TIMELAPSE_NIGHT_HEIGHT", 2592)     #   (Set 2304x1296 here for
+#   the 2x2-binned mode if night frames look grainy - binning pools 4 pixels
+#   of light into one, trading resolution for cleaner darks.)
 AF_RANGE = os.environ.get("TIMELAPSE_AF_RANGE", "macro")    # macro|normal|full - the
 #   insect cam looks at its feet, so bias focus close
 ROTATION = 180
