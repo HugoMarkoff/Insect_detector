@@ -46,6 +46,9 @@ PORT = 8080
 # under root, expanduser("~") would resolve to /root and the two could diverge.
 IMG_DIR = os.environ.get("TIMELAPSE_DIR", os.path.expanduser("~/timelapse_images"))
 MAX_STORED = _int_env("TIMELAPSE_MAX_STORED", 500)          # cap ~/timelapse_images (SD safety)
+IR_LIGHT_MAX = _int_env("IR_LIGHT_MAX", 90)                 # fire IR only when the light
+#   sensor reads BELOW this (0-255, higher = brighter; 213 = bright daylight).
+#   Set 256 to always use IR, 0 to never.
 STATUS_FILE = os.path.join(IMG_DIR, "status.json")          # telemetry for the gallery
 I2C_ADDR = 0x08
 IR_PIN = 0                           # CMD_SET_OUTPUT pin id 0 = IR/flash (D5)
@@ -271,16 +274,20 @@ def main():
         n += 1
         stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         path = os.path.join(IMG_DIR, f"{stamp}.jpg")
-        ir(True)                      # (re)assert IR on before every shot
-        time.sleep(0.4)
-        print(f"[{stamp}] capture #{n}: IR {'held on' if IR_HOLD else 'on -> shoot -> off'}",
+        light = i2c_read(0x12)        # 0-255, higher = brighter
+        use_ir = IR_HOLD or light is None or light < IR_LIGHT_MAX
+        if use_ir:
+            ir(True)                  # (re)assert IR on before the shot
+            time.sleep(0.4)
+        print(f"[{stamp}] capture #{n}: light={'?' if light is None else light} -> "
+              f"IR {'held on' if IR_HOLD else ('on' if use_ir else 'skipped (bright)')}",
               flush=True)
         try:
             ok = capture(path)
         except Exception as e:
             ok = False
             print(f"  capture error: {e}", flush=True)
-        if not IR_HOLD:
+        if use_ir and not IR_HOLD:
             ir(False)
         print(f"  {'saved ' + str(os.path.getsize(path)) + ' bytes' if ok else 'FAILED'}",
               flush=True)
