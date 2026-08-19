@@ -698,24 +698,32 @@ def main():
         os.makedirs(outdir)
 
     doc = App.newDocument("ladybug")
-    parts = [("belly", build_belly()),
-             ("shell", build_shell()),
-             ("leg_segment", build_leg_segment()),
-             ("leg_segment_half", build_leg_segment_half()),
-             ("foot", build_foot())]
-    for name, shape in parts:
-        doc.addObject("Part::Feature", name).Shape = shape
+
+    def check(tag, name, shape, dest):
+        doc.addObject("Part::Feature", (tag + "_" + name).replace(".", "_")).Shape = shape
         bb = shape.BoundBox
         single = shape.isValid() and len(shape.Solids) == 1
-        print("CHECK %-16s %6.1f x %6.1f x %6.1f mm  printable=%s  volume=%.1f cm3"
-              % (name, bb.XLength, bb.YLength, bb.ZLength, single, shape.Volume / 1000.0))
+        print("CHECK %-22s %6.1f x %6.1f x %6.1f mm  printable=%s  volume=%.1f cm3"
+              % (tag + "/" + name, bb.XLength, bb.YLength, bb.ZLength, single,
+                 shape.Volume / 1000.0))
         if not single:
-            print("CHECK    !! not a single closed solid (%d solids) - fix before printing" % len(shape.Solids))
-            for s2 in shape.Solids:
-                b2 = s2.BoundBox
-                print("CHECK       solid vol=%.2f cm3  x %.1f..%.1f  y %.1f..%.1f  z %.1f..%.1f"
-                      % (s2.Volume / 1000.0, b2.XMin, b2.XMax, b2.YMin, b2.YMax, b2.ZMin, b2.ZMax))
-        print("CHECK    -> " + export(shape, name, outdir))
+            print("CHECK    !! not a single closed solid (%d solids) - fix before printing"
+                  % len(shape.Solids))
+        print("CHECK    -> " + export(shape, name, dest))
+
+    # BOTH size options, same features: v1.1 = the original 1:1 body,
+    # v1.2 = ~20% more floor area. Legs are size-independent and shared.
+    for tag, bw, bl in [("v1.1", 130.0, 172.0), ("v1.2", 142.0, 188.0)]:
+        P["body_wid"], P["body_len"] = bw, bl
+        sub = os.path.join(outdir, tag)
+        if not os.path.isdir(sub):
+            os.makedirs(sub)
+        check(tag, "belly", build_belly(), sub)
+        check(tag, "shell", build_shell(), sub)
+    for name, builder in [("leg_segment", build_leg_segment),
+                          ("leg_segment_half", build_leg_segment_half),
+                          ("foot", build_foot)]:
+        check("legs", name, builder(), outdir)
 
     seg, foot_h = P["leg_seg_h"], P["foot_h"]
     splay = math.radians(P["leg_splay"])

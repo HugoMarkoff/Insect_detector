@@ -53,10 +53,17 @@ edit:
 It prints a check per part; every one must say `printable=True` (a single closed
 solid). Current output:
 
-| Part | Size | Volume |
+Every run builds **both size options** — same features, shared legs:
+
+| Part | v1.1 (1:1 original) | v1.2 (+20% floor) |
 |---|---|---|
-| `belly` | 146 × 201 × 54 mm | ~195 cm³ |
-| `shell` | 148 × 202 × 59 mm | ~154 cm³ (thin-walled) |
+| `belly` | 135 × 185 × 54 mm, ~174 cm³ → `stl/v1.1/` | 146 × 201 × 54 mm, ~195 cm³ → `stl/v1.2/` |
+| `shell` | 136 × 186 × 59 mm, ~137 cm³ → `stl/v1.1/` | 148 × 202 × 59 mm, ~154 cm³ → `stl/v1.2/` |
+
+Both shells are the hollow thin-wall design; legs below fit either body.
+
+| Shared part | Size | Volume |
+|---|---|---|
 | `leg_segment` | Ø13 × 35 mm (25 body + 10 peg) | 3.1 cm³ |
 | `leg_segment_half` | Ø13 × 22.5 mm | 1.5 cm³ |
 | `foot` | Ø16 collar + ball, 16.5 mm | 1.4 cm³ |
