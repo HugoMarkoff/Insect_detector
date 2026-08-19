@@ -24,7 +24,7 @@ Key dimensions, parsed straight from the PcbDocs:
 The magnet input is a bare reed switch on the trap PCB's MAG line — it never
 had its own board.
 
-## Camera-trap 3D parts (`cad/ad-camera-3d-parts/`)
+## Camera-trap 3D parts (`cad/`)
 
 The complete production print set (3MF), 30 files:
 
@@ -51,7 +51,6 @@ camera ↔ pogo-interface-board stack (camera in a 1.2 mm pocket, second board
 | `pcb/trap-main/v3-docs/Trap_PCB_V3.pdf` | Trap PCB V3 documentation |
 | `pcb/trap-main/v3-docs/Schematic_V3.jpg` | Trap V3 schematic (image) |
 | `pcb/trap-main/v3-docs/i2c-Pogo-diagram-V2.jpg` | The I2C **pogo-pin interface** diagram |
-| `pcb/trap-main/v3-docs/Prototype-version-TODO.docx` | Prototype-era engineering notes |
 
 ## Legacy firmware & code
 
