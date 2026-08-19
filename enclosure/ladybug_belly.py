@@ -189,18 +189,17 @@ P = {
     "leg_splay":    14.0,          # degrees outward - enough to stay out of frame, not silly
     "socket_od":    16.0,          # round belly boss (the "hip")
     "socket_drop":  13.0,
-    "socket_sq":     7.6,          # socket = peg 7.0 + 0.6 easy-connect wiggle
+    "socket_sq":     7.45,         # socket = peg + fit (easy but not sloppy)
     "socket_r":      1.5,          # rounded socket corners (thicker walls)
     "socket_depth": 11.0,          # blind - never breaks into the dry side
     "leg_seg_h":    25.0,          # one block = +25 mm (5 blocks ~ 12.5 cm leg)
     "leg_d":        13.0,          # round block, proportional to the body
-    "peg_sq":        7.0,          # straight peg, rounded corners - also fits
-    #                                earlier-printed bellies (7.4 sockets)
+    "peg_sq":        7.15,         # straight peg, rounded corners - snug in
+    #                                7.4-socket bellies (0.25 play)
     "peg_r":         1.2,
     "peg_h":        10.0,          # 10 mm engagement
-    "fit":           0.60,         # TOTAL wiggle (socket 7.6 - peg 7.0)
+    "fit":           0.30,         # TOTAL wiggle (socket 7.45 - peg 7.15)
     "foot_h":        6.5,
-    "foot_d":       16.0,
 
     # --- lid screw ears (outside the seal) ---
     "ear_angles":  [15, 165, 195, 345],
@@ -653,13 +652,18 @@ def build_leg_segment_half():
 
 
 def build_foot():
-    """Ball-bottom foot: the spherical base sits flat on the ground at ANY
-    leg angle and any peg orientation - no wedge alignment needed."""
+    """Ball-bottom foot with a straight collar at the top, the SAME diameter
+    as the belly boss / whatever it plugs into - so the joint reads as one
+    continuous column. The ball below still sits flat at any leg angle."""
     p = P
-    r_ball = (p["foot_d"] / 2.0) ** 2 / (2.0 * p["foot_h"]) + p["foot_h"] / 2.0
+    col_h = 3.0
+    r_top = p["socket_od"] / 2.0
+    bh = p["foot_h"] - col_h
+    r_ball = r_top ** 2 / (2.0 * bh) + bh / 2.0
     ball = Part.makeSphere(r_ball, App.Vector(0, 0, r_ball))
-    ball = ball.common(Part.makeBox(60, 60, p["foot_h"], App.Vector(-30, -30, 0)))
-    return ball.fuse(_peg(p["foot_h"])).removeSplitter()
+    ball = ball.common(Part.makeBox(60, 60, bh, App.Vector(-30, -30, 0)))
+    collar = Part.makeCylinder(r_top, col_h + 0.01, App.Vector(0, 0, bh - 0.01))
+    return ball.fuse(collar).fuse(_peg(p["foot_h"])).removeSplitter()
 
 
 # =====================================================================

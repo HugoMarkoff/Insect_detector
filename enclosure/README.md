@@ -55,7 +55,7 @@ solid). Current output:
 | `shell` | 136 × 186 × 58 mm | ~176 cm³ |
 | `leg_segment` | Ø13 × 35 mm (25 body + 10 peg) | 3.1 cm³ |
 | `leg_segment_half` | Ø13 × 22.5 mm | 1.5 cm³ |
-| `foot` | Ø16 ball × 16.5 mm | 1.2 cm³ |
+| `foot` | Ø16 collar + ball, 16.5 mm | 1.4 cm³ |
 
 ## The waterproof lid ("lift") — how the seal works
 
@@ -108,7 +108,7 @@ outdoors** — PLA sags in a sun-baked enclosure. TPU feet grip better and damp
 vibration.
 
 > **Print one `leg_segment` + one `foot` first** and check the peg grip. Too
-> loose → lower `fit` (0.4–0.5). Too tight → raise it (0.7–0.8). Printer
+> loose → lower `fit` (0.15–0.2). Too tight → raise it (0.4–0.5). Printer
 > tolerance varies more than the model does; this one number is the whole trick.
 
 ## Height adjustment (the Lego bit)
@@ -116,10 +116,11 @@ vibration.
 **Six legs — front, middle and rear pairs — tilted 14° outward** like a
 tripod. The system is LEGO-simple: **round parts outside (Ø13 blocks, Ø16
 belly bosses, Ø16 ball feet), ONE standard square hole inside** — a straight
-7.0 mm peg in a 7.6 mm rounded-corner socket, so every peg drops into every
-socket with an easy 0.6 mm of wiggle, in any order, extended as many times as
-you like. (The 7.0 peg also still fits bellies printed with the earlier 7.4
-sockets.) 10 mm engagement + blocks butting face-to-face keep tall stacks
+7.15 mm peg in a 7.45 mm rounded-corner socket — 0.3 mm of wiggle: drops
+together by hand, no slop. (The peg also fits bellies printed with the older
+7.4 sockets, at 0.25 play.) The foot's top is a straight collar at exactly
+`socket_od`, so the joint reads as one continuous column — if your printed
+belly's bosses measure differently, set `socket_od` and reprint only the feet. 10 mm engagement + blocks butting face-to-face keep tall stacks
 stiff instead of wobbling up. The belly sockets are angled,
 so the taller you stack, the wider the stance. Every `leg_segment` adds **25 mm**
 along the leg:
