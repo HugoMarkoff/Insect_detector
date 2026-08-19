@@ -83,6 +83,41 @@ def i2c_write(cmd, data):
 
 
 HIST_DIR = os.environ.get("TIMELAPSE_HISTORY", os.path.expanduser("~/timelapse_history"))
+ADMIN_PW = os.environ.get("ADMIN_PW", "123")                # LAN admin: delete frames, draw boxes
+ANNOT_PATH = os.path.expanduser("~/annotations.json")
+SEG_STATE = os.path.expanduser("~/timelapse_segments/encoded.json")
+
+
+def admin_delete(name):
+    """Delete a frame everywhere the Pi controls it: the working dir AND the
+    video (by dropping the segment that contains it - its sibling frames get
+    re-encoded automatically on the uploader's next cycle)."""
+    p = os.path.join(IMG_DIR, name)
+    if os.path.isfile(p):
+        os.remove(p)
+    try:
+        state = json.load(open(SEG_STATE))
+    except Exception:
+        state = {}
+    seg = state.pop(name, None)
+    if isinstance(seg, str):
+        segp = os.path.join(os.path.dirname(SEG_STATE), seg)
+        if os.path.isfile(segp):
+            os.remove(segp)
+        for k in [k for k, v in state.items() if v == seg]:
+            state.pop(k)                       # siblings re-encode next cycle
+    try:
+        with open(SEG_STATE, "w") as fh:
+            json.dump(state, fh)
+    except OSError:
+        pass
+    try:                                       # drop any annotation for it too
+        annot = json.load(open(ANNOT_PATH))
+        if name in annot:
+            annot.pop(name)
+            json.dump(annot, open(ANNOT_PATH, "w"))
+    except Exception:
+        pass
 
 
 def prune_old(keep):
@@ -187,6 +222,8 @@ GALLERY_HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8">
   <span class="meta"><b id="count">0</b> frames</span>
   <span class="meta">latest: <b id="latest">-</b></span>
   <span class="meta">every __INTERVAL__ s &middot; next in <b id="next">-</b></span>
+  <span class="meta" style="margin-left:auto"><button id="adm" onclick="admLogin()"
+    style="background:none;border:1px solid #33332a;color:#9c9a8c;border-radius:6px;padding:2px 10px;cursor:pointer">admin</button></span>
 </header>
 <main>
   <img id="hero" alt="latest capture" style="display:none">
@@ -220,15 +257,74 @@ async function refresh(){
     hero.src='/img/'+newest;
     document.getElementById('herocap').textContent='newest: '+pretty(newest);
     document.getElementById('grid').innerHTML=files.map(f=>
-      `<figure><img loading="lazy" src="/img/${f}" onclick="location='/img/${f}'"><figcaption>${pretty(f)}</figcaption></figure>`).join('');
+      `<figure><img loading="lazy" src="/img/${f}" onclick="cardClick('${f}')">
+        <figcaption>${pretty(f)}${annot[f]?' <span style="color:#e0b93f">[box:'+annot[f].length+']':''}${PW?` <a href="#" onclick="event.preventDefault();edOpen('${f}')" title="draw boxes">[box]</a> <a href="#" onclick="event.preventDefault();admDel('${f}')" title="delete" style="color:#d66">[x]</a>`:''}</figcaption>
+      </figure>`).join('');
   }
 }
+let PW=localStorage.admPW||'', annot={};
+async function loadAnnot(){ try{annot=await (await fetch('/api/annotations',{cache:'no-store'})).json();}catch(e){annot={};} }
+function cardClick(f){ location='/img/'+f; }
+async function admLogin(){
+  const p=prompt('admin password:'); if(!p)return;
+  const r=await fetch('/api/login',{method:'POST',body:JSON.stringify({pw:p})});
+  if(r.ok){ PW=p; localStorage.admPW=p; document.getElementById('adm').textContent='admin: on'; lastNewest=null; refresh(); }
+  else alert('wrong password');
+}
+async function admDel(f){
+  if(!confirm('Delete '+f+' from the Pi AND the video?'))return;
+  const r=await fetch('/api/delete',{method:'POST',body:JSON.stringify({pw:PW,name:f})});
+  if(r.ok){ lastNewest=null; refresh(); } else alert('failed (password?)');
+}
+// ---- bbox editor ----
+let edName='', edBoxes=[], edDrag=null;
+function edOpen(f){
+  edName=f; edBoxes=(annot[f]||[]).slice();
+  document.getElementById('ed').style.display='block';
+  const im=document.getElementById('edImg'); im.src='/img/'+f;
+  im.onload=()=>{ const cv=document.getElementById('edCv');
+    cv.width=im.clientWidth; cv.height=im.clientHeight; edDraw(); };
+}
+function edXY(e){ const cv=document.getElementById('edCv'), r=cv.getBoundingClientRect();
+  return [ (e.clientX-r.left)/r.width, (e.clientY-r.top)/r.height ]; }
+function edDown(e){ edDrag=edXY(e); }
+function edMove(e){ if(!edDrag)return; edDraw(edXY(e)); }
+function edUp(e){ if(!edDrag)return; const [x1,y1]=edDrag,[x2,y2]=edXY(e); edDrag=null;
+  const b={x:Math.min(x1,x2),y:Math.min(y1,y2),w:Math.abs(x2-x1),h:Math.abs(y2-y1)};
+  if(b.w>0.01&&b.h>0.01)edBoxes.push(b); edDraw(); }
+function edDraw(cur){
+  const cv=document.getElementById('edCv'),c=cv.getContext('2d');
+  c.clearRect(0,0,cv.width,cv.height); c.lineWidth=2; c.strokeStyle='#ffd23f';
+  for(const b of edBoxes)c.strokeRect(b.x*cv.width,b.y*cv.height,b.w*cv.width,b.h*cv.height);
+  if(cur&&edDrag){ c.strokeStyle='#7fd0ff';
+    c.strokeRect(Math.min(edDrag[0],cur[0])*cv.width,Math.min(edDrag[1],cur[1])*cv.height,
+      Math.abs(cur[0]-edDrag[0])*cv.width,Math.abs(cur[1]-edDrag[1])*cv.height); } }
+async function edSave(){
+  const r=await fetch('/api/bbox',{method:'POST',body:JSON.stringify({pw:PW,name:edName,boxes:edBoxes})});
+  if(r.ok){ await loadAnnot(); lastNewest=null; edClose(); refresh(); } else alert('failed'); }
+function edUndo(){ edBoxes.pop(); edDraw(); }
+function edClear(){ edBoxes=[]; edDraw(); }
+function edClose(){ document.getElementById('ed').style.display='none'; }
+if(PW)document.getElementById('adm').textContent='admin: on';
+loadAnnot(); setInterval(loadAnnot,8000);
 function tick(){
   const left=Math.max(0,INTERVAL-Math.round((Date.now()-lastSeen)/1000));
   document.getElementById('next').textContent=left+'s';
 }
 setInterval(refresh,4000);setInterval(tick,1000);refresh();
-</script></body></html>""".replace("__INTERVAL__", str(INTERVAL))
+</script>
+<div id="ed" style="display:none;position:fixed;inset:0;background:#000d;z-index:20;padding:16px" onclick="if(event.target.id==='ed')edClose()">
+  <div style="position:relative;max-width:92vw;max-height:80vh;margin:0 auto;width:fit-content">
+    <img id="edImg" style="max-width:92vw;max-height:78vh;display:block">
+    <canvas id="edCv" style="position:absolute;left:0;top:0;cursor:crosshair"
+      onmousedown="edDown(event)" onmousemove="edMove(event)" onmouseup="edUp(event)"></canvas>
+  </div>
+  <div style="text-align:center;margin-top:10px">
+    <button onclick="edSave()">save boxes</button> <button onclick="edUndo()">undo</button>
+    <button onclick="edClear()">clear</button> <button onclick="edClose()">close</button>
+  </div>
+</div>
+</body></html>""".replace("__INTERVAL__", str(INTERVAL))
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -258,6 +354,41 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     self._send(f.read(), "image/jpeg")
             else:
                 self.send_error(404)
+        elif self.path == "/api/annotations":
+            try:
+                body = open(ANNOT_PATH, "rb").read()
+            except OSError:
+                body = b"{}"
+            self._send(body, "application/json")
+        else:
+            self.send_error(404)
+
+    def do_POST(self):
+        try:
+            n = int(self.headers.get("Content-Length", "0"))
+            req = json.loads(self.rfile.read(n) or b"{}")
+        except Exception:
+            self.send_error(400); return
+        if req.get("pw") != ADMIN_PW:
+            self.send_error(403); return
+        name = os.path.basename(str(req.get("name", "")))
+        if self.path == "/api/login":
+            self._send(b'{"ok":true}', "application/json")
+        elif self.path == "/api/delete" and name.endswith(".jpg"):
+            admin_delete(name)
+            self._send(b'{"ok":true}', "application/json")
+        elif self.path == "/api/bbox" and name.endswith(".jpg"):
+            try:
+                annot = json.load(open(ANNOT_PATH))
+            except Exception:
+                annot = {}
+            boxes = req.get("boxes") or []
+            if boxes:
+                annot[name] = boxes
+            else:
+                annot.pop(name, None)
+            json.dump(annot, open(ANNOT_PATH, "w"))
+            self._send(b'{"ok":true}', "application/json")
         else:
             self.send_error(404)
 

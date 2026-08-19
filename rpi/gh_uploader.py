@@ -131,7 +131,7 @@ def encode_new_segment():
         print("[video] segment encode failed:", (r.stderr or "")[:200], flush=True)
         return False
     for f in frames:
-        state[f] = 1
+        state[f] = os.path.basename(seg)      # remember which segment holds it
     _save_state(state)
     print(f"[video] encoded segment with {len(frames)} frame(s)", flush=True)
     return True
@@ -201,8 +201,17 @@ def build_manifest(imgdir):
     meta = {k: v for k, v in meta.items() if k in set(files)}             # drop rolled-out
     with open(meta_path, "w") as fh:
         json.dump(meta, fh)
-    frames = [{"name": f, "insect": meta[f]["insect"], "score": meta[f]["score"]}
-              for f in sorted(files, reverse=True)]                        # newest first
+    try:                                   # admin bbox annotations from the Pi UI
+        annot = json.load(open(os.path.expanduser("~/annotations.json")))
+    except Exception:
+        annot = {}
+    frames = []
+    for f in sorted(files, reverse=True):                                  # newest first
+        e = {"name": f, "insect": meta[f]["insect"], "score": meta[f]["score"]}
+        if annot.get(f):
+            e["insect"] = True
+            e["boxes"] = annot[f]
+        frames.append(e)
     status = {}                                                            # telemetry from timelapse.py
     try:
         with open(os.path.join(SRC, "status.json")) as fh:
