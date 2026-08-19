@@ -53,7 +53,13 @@ IR_LIGHT_MAX = _int_env("IR_LIGHT_MAX", 100)                # fire IR only when 
 STATUS_FILE = os.path.join(IMG_DIR, "status.json")          # telemetry for the gallery
 I2C_ADDR = 0x08
 IR_PIN = 0                           # CMD_SET_OUTPUT pin id 0 = IR/flash (D5)
-WIDTH, HEIGHT = 1920, 1080
+WIDTH = _int_env("TIMELAPSE_WIDTH", 4608)                   # DAY resolution: the
+HEIGHT = _int_env("TIMELAPSE_HEIGHT", 2592)                 #   IMX708's full 12 MP
+NIGHT_WIDTH = _int_env("TIMELAPSE_NIGHT_WIDTH", 2304)       # NIGHT: the 2x2-binned
+NIGHT_HEIGHT = _int_env("TIMELAPSE_NIGHT_HEIGHT", 1296)     #   mode - binning gathers
+#   4x the light per pixel, so dark frames come out cleaner than full-res would
+AF_RANGE = os.environ.get("TIMELAPSE_AF_RANGE", "macro")    # macro|normal|full - the
+#   insect cam looks at its feet, so bias focus close
 ROTATION = 180
 # Sensor/SoC-specific; overridable. Missing file -> capture runs without tuning.
 TUNING = os.environ.get("TIMELAPSE_TUNING", "/usr/share/libcamera/ipa/rpi/vc4/imx708_noir.json")
@@ -136,11 +142,14 @@ def write_status():
 
 
 # ---- capture ----
-def capture(path):
+def capture(path, day=True):
     subprocess.run(["pkill", "-f", "rpicam-still"], capture_output=True)
-    cmd = ["rpicam-still", "--nopreview", "--immediate", "-o", path,
-           "--width", str(WIDTH), "--height", str(HEIGHT),
-           "--rotation", str(ROTATION), "-t", "1200"]
+    w, h = (WIDTH, HEIGHT) if day else (NIGHT_WIDTH, NIGHT_HEIGHT)
+    cmd = ["rpicam-still", "--nopreview", "-o", path,
+           "--width", str(w), "--height", str(h),
+           "--rotation", str(ROTATION), "-t", "4000", "-q", "95",
+           "--denoise", "cdn_hq",
+           "--autofocus-on-capture", "--autofocus-range", AF_RANGE]
     if os.path.exists(TUNING):
         cmd += ["--tuning-file", TUNING]
     subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -284,7 +293,7 @@ def main():
               f"IR {'held on' if IR_HOLD else ('on' if use_ir else 'skipped (bright)')}",
               flush=True)
         try:
-            ok = capture(path)
+            ok = capture(path, day=not use_ir)
         except Exception as e:
             ok = False
             print(f"  capture error: {e}", flush=True)
