@@ -557,7 +557,7 @@ def build_shell():
     labyrinth the belly was built for, driven by the same parameters."""
     p, L = P, zlevels()
     seat = L["seat_z"]                        # shell rests here
-    base0 = L["shoulder_z"] + 0.3             # skirt bottom (drip gap 0.3)
+    base0 = L["shoulder_z"] + 0.8             # skirt bottom (drip gap - printed-parts safe)
     ring_top = L["tongue_top"] + 2.0
     dome_z = ring_top - 1.0                   # dome spring plane
     A, B = p["body_wid"] / 2.0, p["body_len"] / 2.0
@@ -610,6 +610,13 @@ def build_shell():
         t = math.radians(ang)
         ex, ey = A * math.cos(t), B * math.sin(t)
         shell = shell.fuse(Part.makeCylinder(p["ear_d"] / 2.0 + 0.6, seat - base0, App.Vector(ex, ey, base0)))
+    # the tabs must NOT re-fill the skirt's inner void - the belly's rebate
+    # wall passes through there when the lid drops on. Trim them back to the
+    # skirt line, then drill the screw holes.
+    shell = shell.cut(outline_solid(p["skirt_th"], base0 - 1.0, seat - base0 + 1.0))
+    for ang in p["ear_angles"]:
+        t = math.radians(ang)
+        ex, ey = A * math.cos(t), B * math.sin(t)
         shell = shell.cut(Part.makeCylinder(1.6, 80.0, App.Vector(ex, ey, base0 - 1.0)))
 
     shell = shell.removeSplitter()
