@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Insect Detector — live timelapse</title>
+<title>InsectDetect — live timelapse</title>
 <meta name="description" content="A live insect timelapse from a Raspberry Pi + ATmega328P trap camera.">
 <style>
   :root{
@@ -87,7 +87,7 @@
 <header>
   <div class="wrap bar">
     <div class="brand"><span class="logo">🐛</span>
-      <span>Insect Detector<small>Live IR timelapse · Animal Detect</small></span></div>
+      <span>InsectDetect<small>Live IR timelapse</small></span></div>
     <div class="chips">
       <span class="chip"><span class="dot live" id="dot"></span><span id="status">connecting…</span></span>
       <span class="chip" id="battChip" style="display:none">🔋 <b id="batt">–</b></span>
@@ -102,17 +102,15 @@
   <h2 class="sec">Timelapse <span class="n">— play across time</span></h2>
   <div class="player">
     <div class="stage" id="stage">
-      <img id="stageImg" alt="timelapse frame">
+      <video id="stageVid" muted loop playsinline controls preload="metadata"
+             style="width:100%;display:block;background:#000"></video>
       <span class="stamp" id="stamp">—</span>
-      <span class="live-badge" id="liveBadge">● live edge</span>
     </div>
     <div class="controls">
-      <button class="pbtn" id="play" onclick="toggle()" aria-label="Play/pause">▶</button>
-      <input class="scrub" id="scrub" type="range" min="0" max="0" value="0" oninput="scrubTo(this.value)">
-      <span class="ctl-meta" id="pos">0 / 0</span>
-      <select class="speed" id="speed" onchange="setFps(this.value)">
-        <option value="4">4 fps</option><option value="8" selected>8 fps</option>
-        <option value="15">15 fps</option><option value="25">25 fps</option>
+      <span class="ctl-meta" id="pos">the whole run, one video — every frame ever captured</span>
+      <select class="speed" id="speed" onchange="setRate(this.value)">
+        <option value="0.5">0.5×</option><option value="1" selected>1×</option>
+        <option value="2">2×</option><option value="4">4×</option>
       </select>
     </div>
   </div>
@@ -150,7 +148,8 @@ const RAW=`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/images/`
 const MANIFEST_API=`https://api.github.com/repos/${OWNER}/${REPO}/contents/manifest.json?ref=${BRANCH}`;
 const MANIFEST_RAW=`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/manifest.json`;
 const POLL=90000;
-let frames=[], ordered=[], idx=0, playing=true, fps=8, timer=null, hasManifest=false, status={};
+const VIDEO_RAW=`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/timelapse.mp4`;
+let frames=[], hasManifest=false, status={}, vidFrames=-1;
 
 function url(n){ return RAW + n; }
 function pretty(f){const m=f.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/);
@@ -173,6 +172,7 @@ async function load(){
   }
   if(!m||!m.frames){ if(!frames.length) setStatus('offline','off'); return; }
   frames=m.frames; status=m.status||{}; hasManifest=true;   // newest first
+  updateVideo(m);
   render();
 }
 
@@ -188,14 +188,6 @@ function render(){
   else if(age<40) setStatus(`${Math.round(age)} min ago`,'stale');
   else setStatus(`quiet · ${Math.round(age)} min ago`,'off');
 
-  // player timeline: newest -> oldest (plays backwards in time)
-  const wasAtNewest = idx<=0;
-  ordered=[...frames];                                        // newest first
-  document.getElementById('scrub').max=Math.max(0,ordered.length-1);
-  if(wasAtNewest) idx=0;                                      // stick to newest as frames arrive
-  if(idx>ordered.length-1) idx=ordered.length-1;
-  showFrame();
-  ordered.forEach(f=>{const i=new Image();i.src=url(f.name);}); // preload for smooth play
 
   // recent 10
   document.getElementById('recentRow').innerHTML=frames.slice(0,10).map(f=>card(f)).join('');
@@ -226,20 +218,22 @@ function card(f,ins){
     <figcaption><span>${pretty(f.name).slice(11)}</span>${f.insect?'<span class="tag">🐛</span>':''}</figcaption></figure>`;
 }
 
-// ---- player ----
-function showFrame(){
-  const f=ordered[idx]; if(!f)return;
-  document.getElementById('stageImg').src=url(f.name);
-  document.getElementById('stamp').textContent=pretty(f.name);
-  document.getElementById('pos').textContent=`${idx+1} / ${ordered.length}`;
-  document.getElementById('scrub').value=idx;
-  document.getElementById('liveBadge').style.display=(idx<=0)?'block':'none';
+// ---- player: one MP4 built on the Pi, refreshed only when it grew ----
+function updateVideo(m){
+  const v=document.getElementById('stageVid'), st=document.getElementById('stamp');
+  if(!m.video){ document.getElementById('stage').style.display='none'; return; }
+  document.getElementById('stage').style.display='';
+  st.textContent=`${m.video_frames||'?'} frames · ${m.video_fps||8} fps base`;
+  if(m.video_frames!==vidFrames){                       // reload only on growth
+    const t=v.currentTime, wasPlaying=!v.paused;
+    v.src=VIDEO_RAW+'?v='+(m.video_frames||Date.now());
+    v.load();
+    v.onloadedmetadata=()=>{ try{v.currentTime=Math.min(t,Math.max(0,v.duration-0.1));}catch(e){}
+      if(wasPlaying||vidFrames<0) v.play().catch(()=>{}); };
+    vidFrames=m.video_frames;
+  }
 }
-function tick(){ if(!ordered.length)return; idx=(idx+1)%ordered.length; showFrame(); }
-function toggle(){ playing=!playing; document.getElementById('play').textContent=playing?'❚❚':'▶'; run(); }
-function run(){ if(timer)clearInterval(timer); if(playing)timer=setInterval(tick,1000/fps); }
-function setFps(v){ fps=+v; run(); }
-function scrubTo(v){ idx=+v; showFrame(); if(playing){playing=false;document.getElementById('play').textContent='▶';run();} }
+function setRate(r){ document.getElementById('stageVid').playbackRate=+r; }
 
 // ---- lightbox ----
 function lightbox(name){document.getElementById('lbImg').src=url(name);
@@ -247,8 +241,7 @@ function lightbox(name){document.getElementById('lbImg').src=url(name);
 function closeLB(){document.getElementById('lb').classList.remove('open');}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLB();});
 
-document.getElementById('play').textContent='❚❚';
-load().then(run); setInterval(load,POLL);
+load(); setInterval(load,POLL);
 </script>
 </body>
 </html>
