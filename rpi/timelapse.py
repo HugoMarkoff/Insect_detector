@@ -46,9 +46,10 @@ PORT = 8080
 # under root, expanduser("~") would resolve to /root and the two could diverge.
 IMG_DIR = os.environ.get("TIMELAPSE_DIR", os.path.expanduser("~/timelapse_images"))
 MAX_STORED = _int_env("TIMELAPSE_MAX_STORED", 500)          # cap ~/timelapse_images (SD safety)
-IR_LIGHT_MAX = _int_env("IR_LIGHT_MAX", 90)                 # fire IR only when the light
-#   sensor reads BELOW this (0-255, higher = brighter; 213 = bright daylight).
-#   Set 256 to always use IR, 0 to never.
+IR_LIGHT_MAX = _int_env("IR_LIGHT_MAX", 100)                # fire IR only when the light
+#   sensor reads BELOW this (0-255, higher = brighter; ~215 = bright daylight).
+#   100 = the field-proven legacy trap default (duskValue 400 on the raw
+#   0-1023 scale / 4). Set 256 to always use IR, 0 to never.
 STATUS_FILE = os.path.join(IMG_DIR, "status.json")          # telemetry for the gallery
 I2C_ADDR = 0x08
 IR_PIN = 0                           # CMD_SET_OUTPUT pin id 0 = IR/flash (D5)
