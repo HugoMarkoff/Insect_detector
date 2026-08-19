@@ -217,14 +217,20 @@ function renderStatus(){
 
 function card(f,ins){
   return `<figure class="thumb ${f.insect?'ins':''}" onclick="lightbox('${f.name}')">
-    <img loading="lazy" src="${url(f.name)}" alt="${pretty(f.name)}">
+    <img loading="lazy" src="${url(f.name)}" alt="${pretty(f.name)}" onerror="this.closest('figure').style.display='none'">
     <figcaption><span>${pretty(f.name).slice(11)}</span>${f.boxes?'<span class="tag">📦</span>':(f.insect?'<span class="tag">🐛</span>':'')}</figcaption></figure>`;
 }
 
 // ---- player: one MP4 built on the Pi, refreshed only when it grew ----
 function updateVideo(m){
   const v=document.getElementById('stageVid'), st=document.getElementById('stamp');
-  if(!m.video){ document.getElementById('stage').style.display='none'; return; }
+  const pos=document.getElementById('pos');
+  if(!m.video||m.video_frames<8){
+    document.getElementById('stage').style.display='none';
+    pos.textContent=m.video?`building the timelapse — ${m.video_frames} frame${m.video_frames===1?'':'s'} so far, player appears at 8`:'waiting for the first frames…';
+    vidFrames=-1; return;
+  }
+  pos.textContent='the whole run, one video — every frame ever captured';
   document.getElementById('stage').style.display='';
   st.textContent=`${m.video_frames||'?'} frames · ${m.video_fps||8} fps base`;
   if(m.video_frames!==vidFrames){                       // reload only on growth
