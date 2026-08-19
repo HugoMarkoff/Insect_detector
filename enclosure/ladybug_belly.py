@@ -182,19 +182,22 @@ P = {
 
     # --- legs: SIX (like the real bug), splayed outward like a tripod ---
     #     front pair, middle side pair, rear pair.
-    "leg_pos":     [(32, 56), (-32, 56), (52, 0), (-52, 0), (34, -57), (-34, -57)],
+    #     LEGO-style system: everything ROUND outside, ONE standard square
+    #     hole inside - every peg fits every socket, extend as many times
+    #     as you like. Chunky sections + long pegs = stiff stacks.
+    "leg_pos":     [(32, 56), (-32, 56), (52, 0), (-52, 0), (33, -56), (-33, -56)],
     "leg_splay":    14.0,          # degrees outward - enough to stay out of frame, not silly
-    "socket_od":    14.0,
-    "socket_drop":  13.0,
-    "socket_sq":     7.4,
-    "socket_depth": 10.0,          # blind - never breaks into the dry side
+    "socket_od":    19.0,          # round belly boss
+    "socket_drop":  14.0,
+    "socket_sq":     8.3,          # THE standard square hole (peg 8.0 + fit)
+    "socket_depth": 13.0,          # blind - never breaks into the dry side
     "leg_seg_h":    25.0,          # one block = +25 mm (5 blocks ~ 12.5 cm leg)
-    "leg_out":       9.5,
-    "peg_sq":        7.0,
-    "peg_h":         8.0,
-    "fit":           0.20,         # peg clearance - TUNE THIS on a test print
-    "foot_h":        6.0,
-    "foot_d":       14.0,
+    "leg_d":        17.0,          # round block - ~6x stiffer than the old stick
+    "peg_sq":        8.0,          # straight square peg (chamfer tip only)
+    "peg_h":        12.0,          # 12 mm engagement - joints stay tight
+    "fit":           0.30,         # peg clearance - TUNE THIS on a test print
+    "foot_h":        7.0,
+    "foot_d":       20.0,
 
     # --- lid screw ears (outside the seal) ---
     "ear_angles":  [15, 165, 195, 345],
@@ -618,17 +621,21 @@ def build_shell():
 # legs
 # =====================================================================
 def _peg(z0):
+    """Straight square peg with a short chamfered tip - squarish and true,
+    starting 0.6 inside the parent so the fuse is solid."""
     p = P
-    s, t = p["peg_sq"], p["peg_sq"] * 0.86
-    bot = Part.makeBox(s, s, 0.01, App.Vector(-s / 2.0, -s / 2.0, z0 - 0.6))
+    s, t = p["peg_sq"], p["peg_sq"] - 2.5
+    straight = Part.makeBox(s, s, p["peg_h"] - 1.5 + 0.6,
+                            App.Vector(-s / 2.0, -s / 2.0, z0 - 0.6))
+    bot = Part.makeBox(s, s, 0.01, App.Vector(-s / 2.0, -s / 2.0, z0 + p["peg_h"] - 2.1))
     top = Part.makeBox(t, t, 0.01, App.Vector(-t / 2.0, -t / 2.0, z0 + p["peg_h"]))
-    return Part.makeLoft([bot.Faces[0].OuterWire, top.Faces[0].OuterWire], True)
+    tip = Part.makeLoft([bot.Faces[0].OuterWire, top.Faces[0].OuterWire], True)
+    return straight.fuse(tip).removeSplitter()
 
 
 def _block(h):
     p = P
-    o = p["leg_out"]
-    body = Part.makeBox(o, o, h, App.Vector(-o / 2.0, -o / 2.0, 0)).fuse(_peg(h))
+    body = Part.makeCylinder(p["leg_d"] / 2.0, h).fuse(_peg(h))
     s = p["peg_sq"] + p["fit"]
     sock = Part.makeBox(s, s, p["peg_h"] + 0.6, App.Vector(-s / 2.0, -s / 2.0, -0.01))
     return body.cut(sock).removeSplitter()
@@ -639,7 +646,8 @@ def build_leg_segment():
 
 
 def build_leg_segment_half():
-    return _block(P["leg_seg_h"] / 2.0)
+    # "small" block: the shortest height that still swallows the full peg
+    return _block(max(P["leg_seg_h"] / 2.0, P["peg_h"] + 2.5))
 
 
 def build_foot():
