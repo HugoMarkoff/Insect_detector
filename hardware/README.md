@@ -42,6 +42,25 @@ The complete production print set (3MF), 30 files:
 camera ↔ pogo-interface-board stack (camera in a 1.2 mm pocket, second board
 7.4 mm seat-to-seat above it) that the insect detector's ladybug belly reuses.
 
+## Bill of materials & docs (`docs/`, `pcb/trap-main/v3-docs/`)
+
+| File | What |
+|---|---|
+| `docs/AD_BOM_list.xlsx` | AD camera bill of materials |
+| `docs/Trap_v4_BOM.xls` | Trap v4 bill of materials |
+| `pcb/trap-main/v3-docs/Trap_PCB_V3.pdf` | Trap PCB V3 documentation |
+| `pcb/trap-main/v3-docs/Schematic_V3.jpg` | Trap V3 schematic (image) |
+| `pcb/trap-main/v3-docs/i2c-Pogo-diagram-V2.jpg` | The I2C **pogo-pin interface** diagram |
+| `pcb/trap-main/v3-docs/Prototype-version-TODO.docx` | Prototype-era engineering notes |
+
+## Legacy firmware & code
+
+- `firmware-legacy/` — the original Arduino bring-up sketches: battery
+  capacity (Li-Ion + NiMH), I2C tests, latch/battery-status tests.
+- `legacy-camera-code/` — full snapshot of the original Bitbucket repo
+  (`rmd_rar`): trap-PCB PlatformIO firmware + Raspberry Pi capture/upload
+  scripts. **All credentials stripped** — see `LEGACY-NOTE.md` inside.
+
 ## Related
 
 - The **ladybug insect-camera enclosure** (parametric FreeCAD) lives on the
