@@ -71,12 +71,20 @@ def i2c_write(cmd, data):
         return False
 
 
+HIST_DIR = os.environ.get("TIMELAPSE_HISTORY", os.path.expanduser("~/timelapse_history"))
+
+
 def prune_old(keep):
-    """Keep only the newest `keep` JPEGs in IMG_DIR so the SD card can't fill."""
+    """Move everything but the newest `keep` JPEGs into the local history
+    archive (~/timelapse_history/YYYYMMDD/). Nothing is deleted - the full
+    history stays on the Pi, it just never gets uploaded."""
     imgs = sorted((f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")), reverse=True)
     for f in imgs[keep:]:
+        day = f[:8] if f[:8].isdigit() else "misc"
+        dst = os.path.join(HIST_DIR, day)
         try:
-            os.remove(os.path.join(IMG_DIR, f))
+            os.makedirs(dst, exist_ok=True)
+            os.replace(os.path.join(IMG_DIR, f), os.path.join(dst, f))
         except OSError:
             pass
 
@@ -138,7 +146,7 @@ def capture(path):
 # ---- web gallery ----
 GALLERY_HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Insect Timelapse</title>
+<title>InsectDetect</title>
 <style>
   :root{color-scheme:dark}
   *{box-sizing:border-box}
@@ -161,7 +169,7 @@ GALLERY_HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8">
   .empty{color:#9c9a8c;padding:40px 0;text-align:center}
 </style></head><body>
 <header>
-  <h1><span class="dot"></span>Insect Timelapse</h1>
+  <h1><span class="dot"></span>InsectDetect</h1>
   <span class="meta"><b id="count">0</b> frames</span>
   <span class="meta">latest: <b id="latest">-</b></span>
   <span class="meta">every __INTERVAL__ s &middot; next in <b id="next">-</b></span>
@@ -169,11 +177,18 @@ GALLERY_HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <main>
   <img id="hero" alt="latest capture" style="display:none">
   <div id="herocap"></div>
+  <video id="vid" controls muted loop playsinline
+         style="width:100%;border-radius:12px;border:1px solid #33332a;background:#000;display:none"></video>
+  <div id="vidcap" class="meta" style="margin:8px 2px 22px"></div>
   <div class="grid" id="grid"></div>
   <div class="empty" id="empty">waiting for the first capture...</div>
 </main>
 <script>
 const INTERVAL=__INTERVAL__;
+fetch('timelapse.mp4',{method:'HEAD'}).then(r=>{ if(r.ok){
+  const v=document.getElementById('vid'); v.src='timelapse.mp4?'+Date.now(); v.style.display='';
+  document.getElementById('vidcap').textContent='full-run timelapse video — works offline, straight from the Pi';
+}}).catch(()=>{});
 let lastNewest=null, lastSeen=Date.now();
 function pretty(f){const m=f.match(/(\\d{4})(\\d{2})(\\d{2})_(\\d{2})(\\d{2})(\\d{2})/);
   return m?`${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}:${m[6]}`:f;}
