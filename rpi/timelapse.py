@@ -178,6 +178,38 @@ def write_status():
 
 
 # ---- capture ----
+FOOTER_TEXT = os.environ.get("TIMELAPSE_FOOTER", "InsectDetect · by Hugo Markoff")
+
+
+def stamp_image(path, stamp):
+    """Trail-camera footer: a half-transparent bar along the bottom with the
+    timestamp (left) and the InsectDetect credit (right)."""
+    try:
+        from PIL import Image, ImageDraw, ImageFont
+    except ImportError:
+        return
+    try:
+        im = Image.open(path).convert("RGBA")
+        w, h = im.size
+        bar = max(30, h // 20)
+        overlay = Image.new("RGBA", (w, bar), (0, 0, 0, 115))
+        im.alpha_composite(overlay, (0, h - bar))
+        d = ImageDraw.Draw(im)
+        try:
+            font = ImageFont.truetype(
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", int(bar * 0.52))
+        except Exception:
+            font = ImageFont.load_default()
+        ts = f"{stamp[:4]}-{stamp[4:6]}-{stamp[6:8]}  {stamp[9:11]}:{stamp[11:13]}:{stamp[13:15]}"
+        pad = bar // 2
+        d.text((pad, h - bar // 2), ts, fill=(255, 255, 255, 235), font=font, anchor="lm")
+        d.text((w - pad, h - bar // 2), FOOTER_TEXT, fill=(235, 235, 235, 220),
+               font=font, anchor="rm")
+        im.convert("RGB").save(path, "JPEG", quality=92)
+    except Exception as e:
+        print(f"  footer stamp failed: {e}", flush=True)
+
+
 def capture(path, day=True):
     subprocess.run(["pkill", "-f", "rpicam-still"], capture_output=True)
     w, h = (WIDTH, HEIGHT) if day else (NIGHT_WIDTH, NIGHT_HEIGHT)
@@ -431,6 +463,8 @@ def main():
             print(f"  capture error: {e}", flush=True)
         if use_ir and not IR_HOLD:
             ir(False)
+        if ok:
+            stamp_image(path, stamp)
         print(f"  {'saved ' + str(os.path.getsize(path)) + ' bytes' if ok else 'FAILED'}",
               flush=True)
         prune_old(MAX_STORED)         # bound SD usage
