@@ -1,5 +1,9 @@
 """
-Insect Detector - ladybug enclosure, PART 1: the BELLY (bottom tray).
+Insect Detector - ladybug enclosure v1.2 (belly + shell + legs).
+
+v1.2: body grown ~20% in floor area (130x172 -> 142x188) and the shell walls
+slimmed (6/3.2 -> 3.0/2.6) so the dome is real storage space - every hardware
+mount stays at the same coordinates as v1.1.
 
 Parametric FreeCAD script. Edit PARAMS, run, get STLs.
 
@@ -46,8 +50,8 @@ Z = App.Vector(0, 0, 1)
 # =====================================================================
 P = {
     # --- overall body (cavity swallows the 100 x 80 IR board with margin) ---
-    "body_len":      172.0,   # front-back (Y)
-    "body_wid":      130.0,   # left-right (X)
+    "body_len":      188.0,   # front-back (Y)  - v1.2: ~20% more floor area
+    "body_wid":      142.0,   # left-right (X)   (mount coordinates unchanged)
     "head_rx":        38.0,
     "head_ry":        16.0,
     "floor_th":        3.0,
@@ -210,8 +214,8 @@ P = {
     # --- PART 2: the domed elytra shell (lifts off; seal matches above) ---
     "dome_h":       42.0,          # body dome height over the spring plane
     "head_dome_h":  16.0,          # the small head/pronotum dome
-    "shell_wall":    6.0,          # side wall at the rim (tapers to top)
-    "shell_wall_top": 3.2,
+    "shell_wall":    3.0,          # v1.2: thin walls - the dome is hollow
+    "shell_wall_top": 2.6,         #   storage space, not filled
     # seven-spot ladybird: centre spot + three mirrored pairs (body-dome XY)
     "spots":      [(0, -20), (26, -48), (-26, -48), (44, -6), (-44, -6), (20, 20), (-20, 20)],
     "spot_d":       14.0,
