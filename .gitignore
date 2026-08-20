@@ -2,3 +2,5 @@
 .vscode/
 *.hex
 *.elf
+__pycache__/
+*.pyc
