@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>InsectDetect — live timelapse</title>
+<title>Project Mariehøne — live timelapse</title>
 <meta name="description" content="A live insect timelapse from a Raspberry Pi + ATmega328P trap camera.">
 <style>
   :root{
@@ -87,7 +87,7 @@
 <header>
   <div class="wrap bar">
     <div class="brand"><span class="logo">🐛</span>
-      <span>InsectDetect<small>Live IR timelapse</small></span></div>
+      <span>Project Mariehøne<small>Live IR timelapse</small></span></div>
     <div class="chips">
       <span class="chip"><span class="dot live" id="dot"></span><span id="status">connecting…</span></span>
       <span class="chip" id="battChip" style="display:none">🔋 <b id="batt">–</b></span>
@@ -130,7 +130,7 @@
      steady frames. "Insect" frames are flagged by frame-to-frame change detection
      on the Pi (a motion proxy on the static scene).</p>
   <p id="telemetry" style="color:var(--dim);font-variant-numeric:tabular-nums"></p>
-  <p>Source &amp; docs: <a href="https://github.com/HugoMarkoff/Insect_detector" target="_blank" rel="noopener">github.com/HugoMarkoff/Insect_detector</a></p>
+  <p>Source &amp; docs: <a href="https://github.com/HugoMarkoff/project-mariehoene" target="_blank" rel="noopener">github.com/HugoMarkoff/project-mariehoene</a></p>
 </div></footer>
 
 <div class="lb" id="lb" onclick="if(event.target.id==='lb')closeLB()">
@@ -143,7 +143,7 @@
 </div>
 
 <script>
-const OWNER="HugoMarkoff", REPO="Insect_detector", BRANCH="images";
+const OWNER="HugoMarkoff", REPO="project-mariehoene", BRANCH="images";
 const RAW=`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/images/`;
 // Manifest sources: the GitHub API is real-time but rate-limited (60/hr per IP);
 // the raw CDN isn't rate-limited but can serve a stale copy for minutes. So try
