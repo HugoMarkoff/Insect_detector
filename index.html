@@ -230,14 +230,14 @@ function updateVideo(m){
     pos.textContent=m.video?`building the timelapse — ${m.video_frames} frame${m.video_frames===1?'':'s'} so far, player appears at 8`:'waiting for the first frames…';
     vidFrames=-1; return;
   }
-  pos.textContent='the whole run, one video — every frame ever captured';
+  pos.textContent='the whole run, one video — newest first, playing back in time';
   document.getElementById('stage').style.display='';
   st.textContent=`${m.video_frames||'?'} frames · ${m.video_fps||8} fps base`;
   if(m.video_frames!==vidFrames){                       // reload only on growth
     const t=v.currentTime, wasPlaying=!v.paused;
     v.src=VIDEO_RAW+'?v='+(m.video_frames||Date.now());
     v.load();
-    v.onloadedmetadata=()=>{ try{v.currentTime=Math.min(t,Math.max(0,v.duration-0.1));}catch(e){}
+    v.onloadedmetadata=()=>{ try{v.currentTime=0;}catch(e){}   // start at the live edge
       if(wasPlaying||vidFrames<0) v.play().catch(()=>{}); };
     vidFrames=m.video_frames;
   }
