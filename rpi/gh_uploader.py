@@ -118,7 +118,7 @@ def encode_new_segment():
     tmp = os.path.join(SEG, "_tmp")
     shutil.rmtree(tmp, ignore_errors=True)
     os.makedirs(tmp)
-    for i, f in enumerate(frames):
+    for i, f in enumerate(reversed(frames)):   # NEWEST FIRST inside the segment
         os.symlink(os.path.join(SRC, f), os.path.join(tmp, "f_%05d.jpg" % i))
     seg = os.path.join(SEG, "seg_%d.mp4" % int(time.time()))
     r = subprocess.run([FFMPEG, "-hide_banner", "-loglevel", "error", "-y",
@@ -141,7 +141,10 @@ def rebuild_video():
     """Stream-copy all segments into WORK/timelapse.mp4 (no re-encode). Roll
     to a fresh video (archiving locally) when it outgrows VIDEO_MAX_MB."""
     out = os.path.join(WORK, "timelapse.mp4")
-    segs = sorted(f for f in os.listdir(SEG) if f.startswith("seg_") and f.endswith(".mp4"))
+    # newest segment first: the video plays newest -> oldest and always
+    # OPENS at the live edge; new footage is prepended
+    segs = sorted((f for f in os.listdir(SEG) if f.startswith("seg_") and f.endswith(".mp4")),
+                  reverse=True)
     if not segs:
         return False
     lst = os.path.join(SEG, "concat.txt")
