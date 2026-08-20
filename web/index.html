@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Insect Detector — live timelapse</title>
+<title>Project Mariehøne — live timelapse</title>
 <meta name="description" content="A live insect timelapse from a Raspberry Pi + ATmega328P trap camera.">
 <style>
   :root{
@@ -87,7 +87,7 @@
 <header>
   <div class="wrap bar">
     <div class="brand"><span class="logo">🐛</span>
-      <span>Insect Detector<small>Live IR timelapse · Animal Detect</small></span></div>
+      <span>Project Mariehøne<small>Live IR timelapse</small></span></div>
     <div class="chips">
       <span class="chip"><span class="dot live" id="dot"></span><span id="status">connecting…</span></span>
       <span class="chip" id="battChip" style="display:none">🔋 <b id="batt">–</b></span>
@@ -102,17 +102,15 @@
   <h2 class="sec">Timelapse <span class="n">— play across time</span></h2>
   <div class="player">
     <div class="stage" id="stage">
-      <img id="stageImg" alt="timelapse frame">
+      <video id="stageVid" muted loop playsinline controls preload="metadata"
+             style="width:100%;display:block;background:#000"></video>
       <span class="stamp" id="stamp">—</span>
-      <span class="live-badge" id="liveBadge">● live edge</span>
     </div>
     <div class="controls">
-      <button class="pbtn" id="play" onclick="toggle()" aria-label="Play/pause">▶</button>
-      <input class="scrub" id="scrub" type="range" min="0" max="0" value="0" oninput="scrubTo(this.value)">
-      <span class="ctl-meta" id="pos">0 / 0</span>
-      <select class="speed" id="speed" onchange="setFps(this.value)">
-        <option value="4">4 fps</option><option value="8" selected>8 fps</option>
-        <option value="15">15 fps</option><option value="25">25 fps</option>
+      <span class="ctl-meta" id="pos">the whole run, one video — every frame ever captured</span>
+      <select class="speed" id="speed" onchange="setRate(this.value)">
+        <option value="0.5">0.5×</option><option value="1" selected>1×</option>
+        <option value="2">2×</option><option value="4">4×</option>
       </select>
     </div>
   </div>
@@ -132,17 +130,20 @@
      steady frames. "Insect" frames are flagged by frame-to-frame change detection
      on the Pi (a motion proxy on the static scene).</p>
   <p id="telemetry" style="color:var(--dim);font-variant-numeric:tabular-nums"></p>
-  <p>Source &amp; docs: <a href="https://github.com/HugoMarkoff/Insect_detector" target="_blank" rel="noopener">github.com/HugoMarkoff/Insect_detector</a></p>
+  <p>Source &amp; docs: <a href="https://github.com/HugoMarkoff/project-mariehoene" target="_blank" rel="noopener">github.com/HugoMarkoff/project-mariehoene</a></p>
 </div></footer>
 
 <div class="lb" id="lb" onclick="if(event.target.id==='lb')closeLB()">
   <div class="lcap" id="lbcap"></div>
   <button onclick="closeLB()" aria-label="Close">✕</button>
-  <img id="lbImg" alt="capture">
+  <div style="position:relative;display:inline-block">
+    <img id="lbImg" alt="capture">
+    <div id="lbBoxes" style="position:absolute;inset:0;pointer-events:none"></div>
+  </div>
 </div>
 
 <script>
-const OWNER="HugoMarkoff", REPO="Insect_detector", BRANCH="images";
+const OWNER="HugoMarkoff", REPO="project-mariehoene", BRANCH="images";
 const RAW=`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/images/`;
 // Manifest sources: the GitHub API is real-time but rate-limited (60/hr per IP);
 // the raw CDN isn't rate-limited but can serve a stale copy for minutes. So try
@@ -150,7 +151,8 @@ const RAW=`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/images/`
 const MANIFEST_API=`https://api.github.com/repos/${OWNER}/${REPO}/contents/manifest.json?ref=${BRANCH}`;
 const MANIFEST_RAW=`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/manifest.json`;
 const POLL=90000;
-let frames=[], ordered=[], idx=0, playing=true, fps=8, timer=null, hasManifest=false, status={};
+const VIDEO_RAW=`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/timelapse.mp4`;
+let frames=[], hasManifest=false, status={}, vidFrames=-1;
 
 function url(n){ return RAW + n; }
 function pretty(f){const m=f.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/);
@@ -160,11 +162,18 @@ function ageMin(f){const m=f.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/
 function setStatus(t,c){document.getElementById('status').textContent=t;document.getElementById('dot').className='dot '+c;}
 function b64json(s){return JSON.parse(decodeURIComponent(escape(atob(s.replace(/\s/g,'')))));}
 
+let mEtag='', mCache=null;
 async function load(){
   let m=null;
-  try{                                   // primary: GitHub API (real-time)
-    const r=await fetch(MANIFEST_API+'&t='+Date.now(),{cache:'no-store'});
-    if(r.ok){ const j=await r.json(); m=b64json(j.content); }
+  try{                                   // primary: GitHub API (real-time).
+    // ETag conditional polling: a 304 "nothing changed" answer is FREE (does
+    // not count against the 60/hr rate limit), so only actual updates spend
+    // quota and the real-time path never degrades to the stale raw CDN.
+    const h={};
+    if(mEtag) h['If-None-Match']=mEtag;
+    const r=await fetch(MANIFEST_API,{headers:h,cache:'no-store'});
+    if(r.status===304) m=mCache;
+    else if(r.ok){ mEtag=r.headers.get('etag')||''; const j=await r.json(); m=mCache=b64json(j.content); }
   }catch(e){}
   if(!m){                                // fallback: raw CDN (not rate-limited, ~min stale)
     try{ const r=await fetch(MANIFEST_RAW+'?t='+Date.now(),{cache:'no-store'});
@@ -173,6 +182,7 @@ async function load(){
   }
   if(!m||!m.frames){ if(!frames.length) setStatus('offline','off'); return; }
   frames=m.frames; status=m.status||{}; hasManifest=true;   // newest first
+  updateVideo(m);
   render();
 }
 
@@ -188,14 +198,6 @@ function render(){
   else if(age<40) setStatus(`${Math.round(age)} min ago`,'stale');
   else setStatus(`quiet · ${Math.round(age)} min ago`,'off');
 
-  // player timeline: newest -> oldest (plays backwards in time)
-  const wasAtNewest = idx<=0;
-  ordered=[...frames];                                        // newest first
-  document.getElementById('scrub').max=Math.max(0,ordered.length-1);
-  if(wasAtNewest) idx=0;                                      // stick to newest as frames arrive
-  if(idx>ordered.length-1) idx=ordered.length-1;
-  showFrame();
-  ordered.forEach(f=>{const i=new Image();i.src=url(f.name);}); // preload for smooth play
 
   // recent 10
   document.getElementById('recentRow').innerHTML=frames.slice(0,10).map(f=>card(f)).join('');
@@ -222,33 +224,47 @@ function renderStatus(){
 
 function card(f,ins){
   return `<figure class="thumb ${f.insect?'ins':''}" onclick="lightbox('${f.name}')">
-    <img loading="lazy" src="${url(f.name)}" alt="${pretty(f.name)}">
-    <figcaption><span>${pretty(f.name).slice(11)}</span>${f.insect?'<span class="tag">🐛</span>':''}</figcaption></figure>`;
+    <img loading="lazy" src="${url(f.name)}" alt="${pretty(f.name)}" onerror="this.closest('figure').style.display='none'">
+    <figcaption><span>${pretty(f.name).slice(11)}</span>${f.boxes?'<span class="tag">📦</span>':(f.insect?'<span class="tag">🐛</span>':'')}</figcaption></figure>`;
 }
 
-// ---- player ----
-function showFrame(){
-  const f=ordered[idx]; if(!f)return;
-  document.getElementById('stageImg').src=url(f.name);
-  document.getElementById('stamp').textContent=pretty(f.name);
-  document.getElementById('pos').textContent=`${idx+1} / ${ordered.length}`;
-  document.getElementById('scrub').value=idx;
-  document.getElementById('liveBadge').style.display=(idx<=0)?'block':'none';
+// ---- player: one MP4 built on the Pi, refreshed only when it grew ----
+function updateVideo(m){
+  const v=document.getElementById('stageVid'), st=document.getElementById('stamp');
+  const pos=document.getElementById('pos');
+  if(!m.video||m.video_frames<8){
+    document.getElementById('stage').style.display='none';
+    pos.textContent=m.video?`building the timelapse — ${m.video_frames} frame${m.video_frames===1?'':'s'} so far, player appears at 8`:'waiting for the first frames…';
+    vidFrames=-1; return;
+  }
+  pos.textContent='the whole run, one video — newest first, playing back in time';
+  document.getElementById('stage').style.display='';
+  st.textContent=`${m.video_frames||'?'} frames · ${m.video_fps||8} fps base`;
+  if(m.video_frames!==vidFrames){                       // reload only on growth
+    const t=v.currentTime, wasPlaying=!v.paused;
+    v.src=VIDEO_RAW+'?v='+(m.video_frames||Date.now());
+    v.load();
+    v.onloadedmetadata=()=>{ try{v.currentTime=0;}catch(e){}   // start at the live edge
+      if(wasPlaying||vidFrames<0) v.play().catch(()=>{}); };
+    vidFrames=m.video_frames;
+  }
 }
-function tick(){ if(!ordered.length)return; idx=(idx+1)%ordered.length; showFrame(); }
-function toggle(){ playing=!playing; document.getElementById('play').textContent=playing?'❚❚':'▶'; run(); }
-function run(){ if(timer)clearInterval(timer); if(playing)timer=setInterval(tick,1000/fps); }
-function setFps(v){ fps=+v; run(); }
-function scrubTo(v){ idx=+v; showFrame(); if(playing){playing=false;document.getElementById('play').textContent='▶';run();} }
+function setRate(r){ document.getElementById('stageVid').playbackRate=+r; }
 
 // ---- lightbox ----
 function lightbox(name){document.getElementById('lbImg').src=url(name);
-  document.getElementById('lbcap').textContent=pretty(name);document.getElementById('lb').classList.add('open');}
+  document.getElementById('lbcap').textContent=pretty(name);
+  const bx=document.getElementById('lbBoxes'); bx.innerHTML='';
+  const f=frames.find(x=>x.name===name);
+  (f&&f.boxes||[]).forEach(b=>{const d=document.createElement('div');
+    d.style.cssText=`position:absolute;border:2px solid #ffd23f;border-radius:3px;`+
+      `left:${b.x*100}%;top:${b.y*100}%;width:${b.w*100}%;height:${b.h*100}%`;
+    bx.appendChild(d);});
+  document.getElementById('lb').classList.add('open');}
 function closeLB(){document.getElementById('lb').classList.remove('open');}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLB();});
 
-document.getElementById('play').textContent='❚❚';
-load().then(run); setInterval(load,POLL);
+load(); setInterval(load,POLL);
 </script>
 </body>
 </html>

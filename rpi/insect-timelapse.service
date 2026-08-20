@@ -1,5 +1,5 @@
 [Unit]
-Description=Insect Detector timelapse capture + live web gallery
+Description=Project Mariehøne timelapse capture + live web gallery
 After=network-online.target
 Wants=network-online.target
 

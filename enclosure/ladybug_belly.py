@@ -1,5 +1,9 @@
 """
-Insect Detector - ladybug enclosure, PART 1: the BELLY (bottom tray).
+Project Mariehøne - ladybug enclosure v1.2 (belly + shell + legs).
+
+v1.2: body grown ~20% in floor area (130x172 -> 142x188) and the shell walls
+slimmed (6/3.2 -> 3.0/2.6) so the dome is real storage space - every hardware
+mount stays at the same coordinates as v1.1.
 
 Parametric FreeCAD script. Edit PARAMS, run, get STLs.
 
@@ -46,8 +50,8 @@ Z = App.Vector(0, 0, 1)
 # =====================================================================
 P = {
     # --- overall body (cavity swallows the 100 x 80 IR board with margin) ---
-    "body_len":      172.0,   # front-back (Y)
-    "body_wid":      130.0,   # left-right (X)
+    "body_len":      188.0,   # front-back (Y)  - v1.2: ~20% more floor area
+    "body_wid":      142.0,   # left-right (X)   (mount coordinates unchanged)
     "head_rx":        38.0,
     "head_ry":        16.0,
     "floor_th":        3.0,
@@ -210,8 +214,8 @@ P = {
     # --- PART 2: the domed elytra shell (lifts off; seal matches above) ---
     "dome_h":       42.0,          # body dome height over the spring plane
     "head_dome_h":  16.0,          # the small head/pronotum dome
-    "shell_wall":    6.0,          # side wall at the rim (tapers to top)
-    "shell_wall_top": 3.2,
+    "shell_wall":    3.0,          # v1.2: thin walls - the dome is hollow
+    "shell_wall_top": 2.6,         #   storage space, not filled
     # seven-spot ladybird: centre spot + three mirrored pairs (body-dome XY)
     "spots":      [(0, -20), (26, -48), (-26, -48), (44, -6), (-44, -6), (20, 20), (-20, 20)],
     "spot_d":       14.0,
@@ -694,24 +698,32 @@ def main():
         os.makedirs(outdir)
 
     doc = App.newDocument("ladybug")
-    parts = [("belly", build_belly()),
-             ("shell", build_shell()),
-             ("leg_segment", build_leg_segment()),
-             ("leg_segment_half", build_leg_segment_half()),
-             ("foot", build_foot())]
-    for name, shape in parts:
-        doc.addObject("Part::Feature", name).Shape = shape
+
+    def check(tag, name, shape, dest):
+        doc.addObject("Part::Feature", (tag + "_" + name).replace(".", "_")).Shape = shape
         bb = shape.BoundBox
         single = shape.isValid() and len(shape.Solids) == 1
-        print("CHECK %-16s %6.1f x %6.1f x %6.1f mm  printable=%s  volume=%.1f cm3"
-              % (name, bb.XLength, bb.YLength, bb.ZLength, single, shape.Volume / 1000.0))
+        print("CHECK %-22s %6.1f x %6.1f x %6.1f mm  printable=%s  volume=%.1f cm3"
+              % (tag + "/" + name, bb.XLength, bb.YLength, bb.ZLength, single,
+                 shape.Volume / 1000.0))
         if not single:
-            print("CHECK    !! not a single closed solid (%d solids) - fix before printing" % len(shape.Solids))
-            for s2 in shape.Solids:
-                b2 = s2.BoundBox
-                print("CHECK       solid vol=%.2f cm3  x %.1f..%.1f  y %.1f..%.1f  z %.1f..%.1f"
-                      % (s2.Volume / 1000.0, b2.XMin, b2.XMax, b2.YMin, b2.YMax, b2.ZMin, b2.ZMax))
-        print("CHECK    -> " + export(shape, name, outdir))
+            print("CHECK    !! not a single closed solid (%d solids) - fix before printing"
+                  % len(shape.Solids))
+        print("CHECK    -> " + export(shape, name, dest))
+
+    # BOTH size options, same features: v1.1 = the original 1:1 body,
+    # v1.2 = ~20% more floor area. Legs are size-independent and shared.
+    for tag, bw, bl in [("v1.1", 130.0, 172.0), ("v1.2", 142.0, 188.0)]:
+        P["body_wid"], P["body_len"] = bw, bl
+        sub = os.path.join(outdir, tag)
+        if not os.path.isdir(sub):
+            os.makedirs(sub)
+        check(tag, "belly", build_belly(), sub)
+        check(tag, "shell", build_shell(), sub)
+    for name, builder in [("leg_segment", build_leg_segment),
+                          ("leg_segment_half", build_leg_segment_half),
+                          ("foot", build_foot)]:
+        check("legs", name, builder(), outdir)
 
     seg, foot_h = P["leg_seg_h"], P["foot_h"]
     splay = math.radians(P["leg_splay"])

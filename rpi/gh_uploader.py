@@ -1,11 +1,22 @@
 #!/usr/bin/env python3
-"""Push the newest timelapse frames to GitHub as a rolling window.
+"""Push the insect-cam state to GitHub: a small rolling window of recent JPEGs
+plus ONE growing timelapse video.
 
-Keeps only the last KEEP images and force-pushes a single squashed commit to
-the `images` branch, so repo history never grows and the Pages branch is never
-rebuilt. The Pages site lists these via the GitHub API.
+Design (v2):
+  * Every frame is encoded (H.264) into a tiny MP4 segment on the Pi; all
+    segments are then stream-copied (no re-encode) into a single
+    `timelapse.mp4`. Unlimited frames, one file.
+  * Only the newest KEEP JPEGs ride along (for the gallery's "recent" and
+    "insect" rows). Older frames stay ON THE PI, archived by timelapse.py
+    into ~/timelapse_history/ - history is kept, never uploaded.
+  * The branch holds a single squashed commit (amend + force push). Because
+    the previous commit's objects stay in the local repo, git only transfers
+    NEW blobs - and since the video grows by appending, its delta is roughly
+    just the new tail. No more re-uploading everything.
+  * If the video passes VIDEO_MAX_MB (GitHub caps files at 100 MB) it is
+    archived locally to ~/timelapse_history/ and a fresh one starts.
 
-Auth: SSH deploy key at ~/.ssh/insectcam_deploy (write access to this one repo).
+Auth: SSH deploy key at ~/.ssh/insectcam_deploy (write access to this repo).
 """
 import json
 import os
@@ -19,18 +30,26 @@ except ImportError:
     detect = None
 
 OWNER = os.environ.get("GH_OWNER", "HugoMarkoff")
-REPO = os.environ.get("GH_REPO", "Insect_detector")
+REPO = os.environ.get("GH_REPO", "project-mariehoene")
 BRANCH = os.environ.get("GH_BRANCH", "images")
 SRC = os.environ.get("TIMELAPSE_DIR", os.path.expanduser("~/timelapse_images"))
+HIST = os.environ.get("TIMELAPSE_HISTORY", os.path.expanduser("~/timelapse_history"))
+SEG = os.path.expanduser("~/timelapse_segments")
+STATE = os.path.join(SEG, "encoded.json")
 WORK = os.path.expanduser("~/insect-cam-git")
 KEY = os.path.expanduser("~/.ssh/insectcam_deploy")
-KEEP = int(os.environ.get("GH_KEEP", "60"))
+KEEP = int(os.environ.get("GH_KEEP", "30"))
 INTERVAL = int(os.environ.get("GH_UPLOAD_INTERVAL", "90"))
 CAPTURE_INTERVAL = int(os.environ.get("TIMELAPSE_INTERVAL", "180"))  # for the manifest
+VID_FPS = int(os.environ.get("VIDEO_FPS", "8"))
+VID_W = int(os.environ.get("VIDEO_WIDTH", "800"))
+VIDEO_MAX_MB = int(os.environ.get("VIDEO_MAX_MB", "85"))
 REMOTE = f"git@github.com:{OWNER}/{REPO}.git"
 
 ENV = dict(os.environ, GIT_SSH_COMMAND=(
     f"ssh -i {KEY} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"))
+
+FFMPEG = shutil.which("ffmpeg")
 
 
 def git(*args, check=True):
@@ -44,11 +63,13 @@ def ensure_repo():
         os.makedirs(imgdir, exist_ok=True)
         git("init", "-q")
         git("checkout", "-q", "--orphan", BRANCH)
-        git("config", "user.email", "cam@insect-detector.local")
-        git("config", "user.name", "insect-cam")
+        git("config", "user.email", "cam@mariehoene.local")
+        git("config", "user.name", "mariehoene-cam")
         with open(os.path.join(WORK, ".gitattributes"), "w") as f:
-            f.write("*.jpg -text\n")
+            f.write("*.jpg -text\n*.mp4 -text\n")
     os.makedirs(imgdir, exist_ok=True)
+    os.makedirs(SEG, exist_ok=True)
+    os.makedirs(HIST, exist_ok=True)
     return imgdir
 
 
@@ -69,10 +90,101 @@ def sync_window(imgdir):
     return changed
 
 
+# ---------------- video pipeline ----------------
+def _load_state():
+    try:
+        return json.load(open(STATE))
+    except Exception:
+        return {}
+
+
+def _save_state(state):
+    with open(STATE, "w") as fh:
+        json.dump(state, fh)
+
+
+def encode_new_segment():
+    """Encode all not-yet-encoded frames (chronological) into one MP4 segment.
+    Returns True if a new segment was produced."""
+    if not FFMPEG:
+        return False
+    state = _load_state()
+    frames = sorted(f for f in os.listdir(SRC) if f.endswith(".jpg") and f not in state)
+    # skip the newest frame - it may still be mid-write by the camera
+    if frames and time.time() - os.path.getmtime(os.path.join(SRC, frames[-1])) < 10:
+        frames = frames[:-1]
+    if not frames:
+        return False
+    tmp = os.path.join(SEG, "_tmp")
+    shutil.rmtree(tmp, ignore_errors=True)
+    os.makedirs(tmp)
+    for i, f in enumerate(reversed(frames)):   # NEWEST FIRST inside the segment
+        os.symlink(os.path.join(SRC, f), os.path.join(tmp, "f_%05d.jpg" % i))
+    seg = os.path.join(SEG, "seg_%d.mp4" % int(time.time()))
+    r = subprocess.run([FFMPEG, "-hide_banner", "-loglevel", "error", "-y",
+                        "-framerate", str(VID_FPS), "-i", os.path.join(tmp, "f_%05d.jpg"),
+                        "-vf", f"scale={VID_W}:-2", "-c:v", "libx264",
+                        "-preset", "ultrafast", "-crf", "28", "-pix_fmt", "yuv420p",
+                        seg], capture_output=True, text=True)
+    shutil.rmtree(tmp, ignore_errors=True)
+    if r.returncode != 0 or not os.path.exists(seg):
+        print("[video] segment encode failed:", (r.stderr or "")[:200], flush=True)
+        return False
+    for f in frames:
+        state[f] = os.path.basename(seg)      # remember which segment holds it
+    _save_state(state)
+    print(f"[video] encoded segment with {len(frames)} frame(s)", flush=True)
+    return True
+
+
+def rebuild_video():
+    """Stream-copy all segments into WORK/timelapse.mp4 (no re-encode). Roll
+    to a fresh video (archiving locally) when it outgrows VIDEO_MAX_MB."""
+    out = os.path.join(WORK, "timelapse.mp4")
+    # newest segment first: the video plays newest -> oldest and always
+    # OPENS at the live edge; new footage is prepended
+    segs = sorted((f for f in os.listdir(SEG) if f.startswith("seg_") and f.endswith(".mp4")),
+                  reverse=True)
+    if not segs:
+        return False
+    lst = os.path.join(SEG, "concat.txt")
+    with open(lst, "w") as fh:
+        for s in segs:
+            fh.write("file '%s'\n" % os.path.join(SEG, s))
+    r = subprocess.run([FFMPEG, "-hide_banner", "-loglevel", "error", "-y",
+                        "-f", "concat", "-safe", "0", "-i", lst,
+                        "-c", "copy", "-movflags", "+faststart", out],
+                       capture_output=True, text=True)
+    if r.returncode != 0 or not os.path.exists(out):
+        print("[video] concat failed:", (r.stderr or "")[:200], flush=True)
+        return False
+    link = os.path.join(SRC, "timelapse.mp4")          # expose to the local
+    if not os.path.islink(link) and not os.path.exists(link):   # :8080 gallery
+        try:
+            os.symlink(out, link)
+        except OSError:
+            pass
+    if os.path.getsize(out) > VIDEO_MAX_MB * 1024 * 1024:
+        stamp = time.strftime("%Y%m%d_%H%M%S")
+        arch = os.path.join(HIST, "video-archive-" + stamp)
+        os.makedirs(arch, exist_ok=True)
+        shutil.move(out, os.path.join(arch, "timelapse.mp4"))
+        for s in segs:
+            shutil.move(os.path.join(SEG, s), os.path.join(arch, s))
+        _save_state({})
+        print(f"[video] hit {VIDEO_MAX_MB} MB - archived to {arch}, starting fresh", flush=True)
+        return True                        # WORK video removed -> commit the removal
+    return True
+
+
+def video_frame_count():
+    return len(_load_state())
+
+
+# ---------------- manifest + push ----------------
 def build_manifest(imgdir):
     """Score each frame for insect activity (once, cached) and write manifest.json
-    at the branch root: {interval, count, insects, frames:[{name,insect,score}]}
-    newest-first. The gallery reads this single file."""
+    at the branch root. The gallery reads this single file."""
     meta_path = os.path.join(WORK, "meta.json")
     try:
         meta = json.load(open(meta_path))
@@ -92,16 +204,29 @@ def build_manifest(imgdir):
     meta = {k: v for k, v in meta.items() if k in set(files)}             # drop rolled-out
     with open(meta_path, "w") as fh:
         json.dump(meta, fh)
-    frames = [{"name": f, "insect": meta[f]["insect"], "score": meta[f]["score"]}
-              for f in sorted(files, reverse=True)]                        # newest first
+    try:                                   # admin bbox annotations from the Pi UI
+        annot = json.load(open(os.path.expanduser("~/annotations.json")))
+    except Exception:
+        annot = {}
+    frames = []
+    for f in sorted(files, reverse=True):                                  # newest first
+        e = {"name": f, "insect": meta[f]["insect"], "score": meta[f]["score"]}
+        if annot.get(f):
+            e["insect"] = True
+            e["boxes"] = annot[f]
+        frames.append(e)
     status = {}                                                            # telemetry from timelapse.py
     try:
         with open(os.path.join(SRC, "status.json")) as fh:
             status = json.load(fh)
     except Exception:
         pass
+    vid = os.path.join(WORK, "timelapse.mp4")
     manifest = {"interval": CAPTURE_INTERVAL, "count": len(frames),
                 "insects": sum(1 for f in frames if f["insect"]),
+                "video": "timelapse.mp4" if os.path.exists(vid) else None,
+                "video_frames": video_frame_count(),
+                "video_fps": VID_FPS,
                 "status": status, "frames": frames}
     with open(os.path.join(WORK, "manifest.json"), "w") as fh:
         json.dump(manifest, fh)
@@ -112,9 +237,9 @@ def push():
     if git("diff", "--cached", "--quiet", check=False).returncode == 0:
         return False
     if git("rev-parse", "-q", "--verify", "HEAD", check=False).returncode == 0:
-        git("commit", "-q", "--amend", "-m", "rolling window")
+        git("commit", "-q", "--amend", "-m", "rolling window + timelapse video")
     else:
-        git("commit", "-q", "-m", "rolling window")
+        git("commit", "-q", "-m", "rolling window + timelapse video")
     r = git("push", "-f", REMOTE, f"HEAD:{BRANCH}", check=False)
     if r.returncode != 0:
         print("[push] failed:", (r.stderr or "").strip()[:200], flush=True)
@@ -123,23 +248,35 @@ def push():
 
 
 def main():
-    if "GH_OWNER" not in os.environ:
-        print("gh_uploader: GH_OWNER not set, defaulting to 'HugoMarkoff' - "
-              "forks must set GH_OWNER (setup.sh sets it in the service unit).", flush=True)
-    print(f"uploader: {OWNER}/{REPO} branch {BRANCH}, keep {KEEP}, every {INTERVAL}s", flush=True)
+    if not FFMPEG:
+        print("gh_uploader: ffmpeg not found - video disabled, images only", flush=True)
+    print(f"uploader v2: {OWNER}/{REPO} branch {BRANCH}, keep {KEEP} jpgs, "
+          f"one video @{VID_FPS}fps w{VID_W}, every {INTERVAL}s", flush=True)
     imgdir = None
+    fails = 0
     while True:
         try:
             if imgdir is None:                # (re)initialise inside the loop so a
                 imgdir = ensure_repo()        # git error retries instead of crash-looping
-            if sync_window(imgdir):
+            changed = sync_window(imgdir)
+            if encode_new_segment():
+                changed = rebuild_video() or changed
+            if changed:
                 build_manifest(imgdir)        # score frames -> manifest.json
                 if push():
                     n = len([f for f in os.listdir(imgdir) if f.endswith(".jpg")])
-                    print(f"pushed rolling window ({n} images)", flush=True)
+                    print(f"pushed: {n} jpgs in window, video {video_frame_count()} frames",
+                          flush=True)
+            fails = 0
         except Exception as e:
             print(f"cycle error: {e}", flush=True)
             imgdir = None
+            fails += 1
+            if fails >= 3:                    # a power cut can corrupt the work repo
+                print("[git] repeated failures - rebuilding work repo from scratch",
+                      flush=True)              # (it holds only derived state; one full
+                shutil.rmtree(WORK, ignore_errors=True)   # re-push recreates it)
+                fails = 0
         time.sleep(INTERVAL)
 
 

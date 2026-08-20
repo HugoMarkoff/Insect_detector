@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Insect Detector - Raspberry Pi setup.
+# Project Mariehøne - Raspberry Pi setup.
 #
 # Installs the timelapse capture loop, the local web gallery, and the GitHub
 # Pages publisher as systemd services. Run it on the Pi from a clone of this repo:
 #
-#     git clone https://github.com/<you>/Insect_detector.git
-#     cd Insect_detector/rpi && ./setup.sh
+#     git clone https://github.com/<you>/project-mariehoene.git
+#     cd project-mariehoene/rpi && ./setup.sh
 #
 # Everything is driven by the variables below or matching env vars, so a fork
 # only needs to change GH_USER / GH_REPO (or export them before running).
@@ -13,7 +13,7 @@ set -euo pipefail
 
 # ---- config (override via env, e.g. GH_USER=me ./setup.sh) ----
 GH_USER="${GH_USER:-HugoMarkoff}"       # your GitHub username
-GH_REPO="${GH_REPO:-Insect_detector}"   # the repo to publish into (must be public)
+GH_REPO="${GH_REPO:-project-mariehoene}"   # the repo to publish into (must be public)
 INTERVAL="${INTERVAL:-180}"             # seconds between captures
 KEEP="${KEEP:-60}"                      # images kept in the rolling window
 UPLOAD_INTERVAL="${UPLOAD_INTERVAL:-90}" # seconds between GitHub pushes
@@ -73,8 +73,8 @@ GP="$(mktemp -d)"; cp "$REPO_DIR/web/index.html" "$GP/index.html"
 sed -i "s/const OWNER=\"[^\"]*\", REPO=\"[^\"]*\"/const OWNER=\"$GH_USER\", REPO=\"$GH_REPO\"/" "$GP/index.html"
 git -C "$GP" init -q
 git -C "$GP" checkout -q --orphan gh-pages
-git -C "$GP" -c user.email=cam@insect-detector.local -c user.name=insect-cam add index.html
-git -C "$GP" -c user.email=cam@insect-detector.local -c user.name=insect-cam commit -q -m "gallery"
+git -C "$GP" -c user.email=cam@mariehoene.local -c user.name=mariehoene-cam add index.html
+git -C "$GP" -c user.email=cam@mariehoene.local -c user.name=mariehoene-cam commit -q -m "gallery"
 GIT_SSH_COMMAND="$SSH_CMD" git -C "$GP" push -f "git@github.com:$GH_USER/$GH_REPO.git" HEAD:gh-pages
 rm -rf "$GP"
 
@@ -82,7 +82,7 @@ rm -rf "$GP"
 say "Installing systemd services…"
 sudo tee /etc/systemd/system/insect-timelapse.service >/dev/null <<UNIT
 [Unit]
-Description=Insect Detector timelapse capture + live web gallery
+Description=Project Mariehøne timelapse capture + live web gallery
 After=network-online.target
 Wants=network-online.target
 [Service]
@@ -100,7 +100,7 @@ UNIT
 
 sudo tee /etc/systemd/system/insect-uploader.service >/dev/null <<UNIT
 [Unit]
-Description=Insect Detector - push timelapse frames to GitHub Pages
+Description=Project Mariehøne - push timelapse frames to GitHub Pages
 After=network-online.target insect-timelapse.service
 Wants=network-online.target
 [Service]

@@ -1,4 +1,4 @@
-// Insect Detector — timelapse firmware for the AD Trap PCB V3.3 (ATmega328P @ 16 MHz).
+// Project Mariehoene — timelapse firmware for the AD Trap PCB V3.3 (ATmega328P @ 16 MHz).
 // Derived from the Animal Detect arduino-controller (2024-04-22 snapshot); keeps the
 // same I2C slave protocol so the existing RPi stack keeps working unmodified.
 //
@@ -490,7 +490,7 @@ void setup() {
     Wire.onReceive(receiveEvent);
     Wire.onRequest(requestEvent);
     Serial.begin(BAUDRATE);
-    Serial.println(F("Insect Detector timelapse v0.2"));
+    Serial.println(F("Project Mariehoene timelapse v0.2"));
     delay(500);
 
     // Timer2 time base (see comment at the Time struct)

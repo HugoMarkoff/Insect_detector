@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Insect Detector - WiFi timelapse with live web gallery.
+"""Project Mariehøne - WiFi timelapse with live web gallery.
 
 Runs on the trap Raspberry Pi. Every INTERVAL seconds it drives the IR output
 on the Arduino, captures a frame, drives IR back off, and stores the JPEG. A
@@ -16,6 +16,7 @@ I2C to Arduino @0x08 (firmware v0.2):
 import datetime
 import http.server
 import json
+import math
 import os
 import socketserver
 import subprocess
@@ -46,10 +47,24 @@ PORT = 8080
 # under root, expanduser("~") would resolve to /root and the two could diverge.
 IMG_DIR = os.environ.get("TIMELAPSE_DIR", os.path.expanduser("~/timelapse_images"))
 MAX_STORED = _int_env("TIMELAPSE_MAX_STORED", 500)          # cap ~/timelapse_images (SD safety)
+IR_LIGHT_MAX = _int_env("IR_LIGHT_MAX", 100)                # fire IR only when the light
+#   sensor reads BELOW this (0-255, higher = brighter; ~215 = bright daylight).
+#   100 = the field-proven legacy trap default (duskValue 400 on the raw
+#   0-1023 scale / 4). Set 256 to always use IR, 0 to never.
+LAT = float(os.environ.get("TIMELAPSE_LAT", "57.05"))       # camera site (Aalborg, DK)
+LON = float(os.environ.get("TIMELAPSE_LON", "9.92"))        # east positive
+SUN_DAY_ELEV = float(os.environ.get("TIMELAPSE_SUN_ELEV", "-4"))  # sun above this = day
 STATUS_FILE = os.path.join(IMG_DIR, "status.json")          # telemetry for the gallery
 I2C_ADDR = 0x08
 IR_PIN = 0                           # CMD_SET_OUTPUT pin id 0 = IR/flash (D5)
-WIDTH, HEIGHT = 1920, 1080
+WIDTH = _int_env("TIMELAPSE_WIDTH", 4608)                   # DAY resolution: the
+HEIGHT = _int_env("TIMELAPSE_HEIGHT", 2592)                 #   IMX708's full 12 MP
+NIGHT_WIDTH = _int_env("TIMELAPSE_NIGHT_WIDTH", 4608)      # NIGHT: full 12 MP too.
+NIGHT_HEIGHT = _int_env("TIMELAPSE_NIGHT_HEIGHT", 2592)     #   (Set 2304x1296 here for
+#   the 2x2-binned mode if night frames look grainy - binning pools 4 pixels
+#   of light into one, trading resolution for cleaner darks.)
+AF_RANGE = os.environ.get("TIMELAPSE_AF_RANGE", "macro")    # macro|normal|full - the
+#   insect cam looks at its feet, so bias focus close
 ROTATION = 180
 # Sensor/SoC-specific; overridable. Missing file -> capture runs without tuning.
 TUNING = os.environ.get("TIMELAPSE_TUNING", "/usr/share/libcamera/ipa/rpi/vc4/imx708_noir.json")
@@ -71,14 +86,77 @@ def i2c_write(cmd, data):
         return False
 
 
+HIST_DIR = os.environ.get("TIMELAPSE_HISTORY", os.path.expanduser("~/timelapse_history"))
+ADMIN_PW = os.environ.get("ADMIN_PW", "123")                # LAN admin: delete frames, draw boxes
+ANNOT_PATH = os.path.expanduser("~/annotations.json")
+SEG_STATE = os.path.expanduser("~/timelapse_segments/encoded.json")
+
+
+def admin_delete(name):
+    """Delete a frame everywhere the Pi controls it: the working dir AND the
+    video (by dropping the segment that contains it - its sibling frames get
+    re-encoded automatically on the uploader's next cycle)."""
+    p = os.path.join(IMG_DIR, name)
+    if os.path.isfile(p):
+        os.remove(p)
+    try:
+        state = json.load(open(SEG_STATE))
+    except Exception:
+        state = {}
+    seg = state.pop(name, None)
+    if isinstance(seg, str):
+        segp = os.path.join(os.path.dirname(SEG_STATE), seg)
+        if os.path.isfile(segp):
+            os.remove(segp)
+        for k in [k for k, v in state.items() if v == seg]:
+            state.pop(k)                       # siblings re-encode next cycle
+    try:
+        with open(SEG_STATE, "w") as fh:
+            json.dump(state, fh)
+    except OSError:
+        pass
+    try:                                       # drop any annotation for it too
+        annot = json.load(open(ANNOT_PATH))
+        if name in annot:
+            annot.pop(name)
+            json.dump(annot, open(ANNOT_PATH, "w"))
+    except Exception:
+        pass
+
+
 def prune_old(keep):
-    """Keep only the newest `keep` JPEGs in IMG_DIR so the SD card can't fill."""
+    """Move everything but the newest `keep` JPEGs into the local history
+    archive (~/timelapse_history/YYYYMMDD/). Nothing is deleted - the full
+    history stays on the Pi, it just never gets uploaded."""
     imgs = sorted((f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")), reverse=True)
     for f in imgs[keep:]:
+        day = f[:8] if f[:8].isdigit() else "misc"
+        dst = os.path.join(HIST_DIR, day)
         try:
-            os.remove(os.path.join(IMG_DIR, f))
+            os.makedirs(dst, exist_ok=True)
+            os.replace(os.path.join(IMG_DIR, f), os.path.join(dst, f))
         except OSError:
             pass
+
+
+def sun_up():
+    """True while the sun is above SUN_DAY_ELEV degrees. The light sensor sits
+    UNDER the belly, shaded by the body, so it reads 'night' in broad daylight -
+    astronomy decides day vs night; the LDR only fine-tunes within the night
+    window (e.g. a lit yard needs no IR)."""
+    d = time.time() / 86400.0 - 10957.5                      # days since J2000.0
+    g = math.radians((357.529 + 0.98560028 * d) % 360.0)     # solar mean anomaly
+    lam = math.radians(((280.459 + 0.98564736 * d)           # ecliptic longitude
+                        + 1.915 * math.sin(g) + 0.020 * math.sin(2 * g)) % 360.0)
+    e = math.radians(23.437)                                 # obliquity
+    ra = math.degrees(math.atan2(math.cos(e) * math.sin(lam), math.cos(lam)))
+    dec = math.asin(math.sin(e) * math.sin(lam))
+    gmst = (280.46061837 + 360.98564736629 * d) % 360.0      # sidereal time
+    ha = math.radians((gmst + LON - ra) % 360.0)             # local hour angle
+    la = math.radians(LAT)
+    elev = math.degrees(math.asin(
+        math.sin(la) * math.sin(dec) + math.cos(la) * math.cos(dec) * math.cos(ha)))
+    return elev > SUN_DAY_ELEV
 
 
 def ir(on):
@@ -124,11 +202,46 @@ def write_status():
 
 
 # ---- capture ----
-def capture(path):
+FOOTER_TEXT = os.environ.get("TIMELAPSE_FOOTER", "Project Mariehøne · by Hugo Markoff")
+
+
+def stamp_image(path, stamp):
+    """Trail-camera footer: a half-transparent bar along the bottom with the
+    timestamp (left) and the Project Mariehøne credit (right)."""
+    try:
+        from PIL import Image, ImageDraw, ImageFont
+    except ImportError:
+        return
+    try:
+        im = Image.open(path).convert("RGBA")
+        w, h = im.size
+        bar = max(30, h // 20)
+        overlay = Image.new("RGBA", (w, bar), (0, 0, 0, 115))
+        im.alpha_composite(overlay, (0, h - bar))
+        d = ImageDraw.Draw(im)
+        try:
+            font = ImageFont.truetype(
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", int(bar * 0.52))
+        except Exception:
+            font = ImageFont.load_default()
+        ts = f"{stamp[:4]}-{stamp[4:6]}-{stamp[6:8]}  {stamp[9:11]}:{stamp[11:13]}:{stamp[13:15]}"
+        pad = bar // 2
+        d.text((pad, h - bar // 2), ts, fill=(255, 255, 255, 235), font=font, anchor="lm")
+        d.text((w - pad, h - bar // 2), FOOTER_TEXT, fill=(235, 235, 235, 220),
+               font=font, anchor="rm")
+        im.convert("RGB").save(path, "JPEG", quality=92)
+    except Exception as e:
+        print(f"  footer stamp failed: {e}", flush=True)
+
+
+def capture(path, day=True):
     subprocess.run(["pkill", "-f", "rpicam-still"], capture_output=True)
-    cmd = ["rpicam-still", "--nopreview", "--immediate", "-o", path,
-           "--width", str(WIDTH), "--height", str(HEIGHT),
-           "--rotation", str(ROTATION), "-t", "1200"]
+    w, h = (WIDTH, HEIGHT) if day else (NIGHT_WIDTH, NIGHT_HEIGHT)
+    cmd = ["rpicam-still", "--nopreview", "-o", path,
+           "--width", str(w), "--height", str(h),
+           "--rotation", str(ROTATION), "-t", "4000", "-q", "95",
+           "--denoise", "cdn_hq",
+           "--autofocus-on-capture", "--autofocus-range", AF_RANGE]
     if os.path.exists(TUNING):
         cmd += ["--tuning-file", TUNING]
     subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -138,7 +251,7 @@ def capture(path):
 # ---- web gallery ----
 GALLERY_HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Insect Timelapse</title>
+<title>Project Mariehøne</title>
 <style>
   :root{color-scheme:dark}
   *{box-sizing:border-box}
@@ -161,19 +274,28 @@ GALLERY_HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8">
   .empty{color:#9c9a8c;padding:40px 0;text-align:center}
 </style></head><body>
 <header>
-  <h1><span class="dot"></span>Insect Timelapse</h1>
+  <h1><span class="dot"></span>Project Mariehøne</h1>
   <span class="meta"><b id="count">0</b> frames</span>
   <span class="meta">latest: <b id="latest">-</b></span>
   <span class="meta">every __INTERVAL__ s &middot; next in <b id="next">-</b></span>
+  <span class="meta" style="margin-left:auto"><button id="adm" onclick="admLogin()"
+    style="background:none;border:1px solid #33332a;color:#9c9a8c;border-radius:6px;padding:2px 10px;cursor:pointer">admin</button></span>
 </header>
 <main>
   <img id="hero" alt="latest capture" style="display:none">
   <div id="herocap"></div>
+  <video id="vid" controls muted loop playsinline
+         style="width:100%;border-radius:12px;border:1px solid #33332a;background:#000;display:none"></video>
+  <div id="vidcap" class="meta" style="margin:8px 2px 22px"></div>
   <div class="grid" id="grid"></div>
   <div class="empty" id="empty">waiting for the first capture...</div>
 </main>
 <script>
 const INTERVAL=__INTERVAL__;
+fetch('timelapse.mp4',{method:'HEAD'}).then(r=>{ if(r.ok){
+  const v=document.getElementById('vid'); v.src='timelapse.mp4?'+Date.now(); v.style.display='';
+  document.getElementById('vidcap').textContent='full-run timelapse video — works offline, straight from the Pi';
+}}).catch(()=>{});
 let lastNewest=null, lastSeen=Date.now();
 function pretty(f){const m=f.match(/(\\d{4})(\\d{2})(\\d{2})_(\\d{2})(\\d{2})(\\d{2})/);
   return m?`${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}:${m[6]}`:f;}
@@ -191,15 +313,74 @@ async function refresh(){
     hero.src='/img/'+newest;
     document.getElementById('herocap').textContent='newest: '+pretty(newest);
     document.getElementById('grid').innerHTML=files.map(f=>
-      `<figure><img loading="lazy" src="/img/${f}" onclick="location='/img/${f}'"><figcaption>${pretty(f)}</figcaption></figure>`).join('');
+      `<figure><img loading="lazy" src="/img/${f}" onclick="cardClick('${f}')">
+        <figcaption>${pretty(f)}${annot[f]?' <span style="color:#e0b93f">[box:'+annot[f].length+']':''}${PW?` <a href="#" onclick="event.preventDefault();edOpen('${f}')" title="draw boxes">[box]</a> <a href="#" onclick="event.preventDefault();admDel('${f}')" title="delete" style="color:#d66">[x]</a>`:''}</figcaption>
+      </figure>`).join('');
   }
 }
+let PW=localStorage.admPW||'', annot={};
+async function loadAnnot(){ try{annot=await (await fetch('/api/annotations',{cache:'no-store'})).json();}catch(e){annot={};} }
+function cardClick(f){ location='/img/'+f; }
+async function admLogin(){
+  const p=prompt('admin password:'); if(!p)return;
+  const r=await fetch('/api/login',{method:'POST',body:JSON.stringify({pw:p})});
+  if(r.ok){ PW=p; localStorage.admPW=p; document.getElementById('adm').textContent='admin: on'; lastNewest=null; refresh(); }
+  else alert('wrong password');
+}
+async function admDel(f){
+  if(!confirm('Delete '+f+' from the Pi AND the video?'))return;
+  const r=await fetch('/api/delete',{method:'POST',body:JSON.stringify({pw:PW,name:f})});
+  if(r.ok){ lastNewest=null; refresh(); } else alert('failed (password?)');
+}
+// ---- bbox editor ----
+let edName='', edBoxes=[], edDrag=null;
+function edOpen(f){
+  edName=f; edBoxes=(annot[f]||[]).slice();
+  document.getElementById('ed').style.display='block';
+  const im=document.getElementById('edImg'); im.src='/img/'+f;
+  im.onload=()=>{ const cv=document.getElementById('edCv');
+    cv.width=im.clientWidth; cv.height=im.clientHeight; edDraw(); };
+}
+function edXY(e){ const cv=document.getElementById('edCv'), r=cv.getBoundingClientRect();
+  return [ (e.clientX-r.left)/r.width, (e.clientY-r.top)/r.height ]; }
+function edDown(e){ edDrag=edXY(e); }
+function edMove(e){ if(!edDrag)return; edDraw(edXY(e)); }
+function edUp(e){ if(!edDrag)return; const [x1,y1]=edDrag,[x2,y2]=edXY(e); edDrag=null;
+  const b={x:Math.min(x1,x2),y:Math.min(y1,y2),w:Math.abs(x2-x1),h:Math.abs(y2-y1)};
+  if(b.w>0.01&&b.h>0.01)edBoxes.push(b); edDraw(); }
+function edDraw(cur){
+  const cv=document.getElementById('edCv'),c=cv.getContext('2d');
+  c.clearRect(0,0,cv.width,cv.height); c.lineWidth=2; c.strokeStyle='#ffd23f';
+  for(const b of edBoxes)c.strokeRect(b.x*cv.width,b.y*cv.height,b.w*cv.width,b.h*cv.height);
+  if(cur&&edDrag){ c.strokeStyle='#7fd0ff';
+    c.strokeRect(Math.min(edDrag[0],cur[0])*cv.width,Math.min(edDrag[1],cur[1])*cv.height,
+      Math.abs(cur[0]-edDrag[0])*cv.width,Math.abs(cur[1]-edDrag[1])*cv.height); } }
+async function edSave(){
+  const r=await fetch('/api/bbox',{method:'POST',body:JSON.stringify({pw:PW,name:edName,boxes:edBoxes})});
+  if(r.ok){ await loadAnnot(); lastNewest=null; edClose(); refresh(); } else alert('failed'); }
+function edUndo(){ edBoxes.pop(); edDraw(); }
+function edClear(){ edBoxes=[]; edDraw(); }
+function edClose(){ document.getElementById('ed').style.display='none'; }
+if(PW)document.getElementById('adm').textContent='admin: on';
+loadAnnot(); setInterval(loadAnnot,8000);
 function tick(){
   const left=Math.max(0,INTERVAL-Math.round((Date.now()-lastSeen)/1000));
   document.getElementById('next').textContent=left+'s';
 }
 setInterval(refresh,4000);setInterval(tick,1000);refresh();
-</script></body></html>""".replace("__INTERVAL__", str(INTERVAL))
+</script>
+<div id="ed" style="display:none;position:fixed;inset:0;background:#000d;z-index:20;padding:16px" onclick="if(event.target.id==='ed')edClose()">
+  <div style="position:relative;max-width:92vw;max-height:80vh;margin:0 auto;width:fit-content">
+    <img id="edImg" style="max-width:92vw;max-height:78vh;display:block">
+    <canvas id="edCv" style="position:absolute;left:0;top:0;cursor:crosshair"
+      onmousedown="edDown(event)" onmousemove="edMove(event)" onmouseup="edUp(event)"></canvas>
+  </div>
+  <div style="text-align:center;margin-top:10px">
+    <button onclick="edSave()">save boxes</button> <button onclick="edUndo()">undo</button>
+    <button onclick="edClear()">clear</button> <button onclick="edClose()">close</button>
+  </div>
+</div>
+</body></html>""".replace("__INTERVAL__", str(INTERVAL))
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -229,6 +410,41 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     self._send(f.read(), "image/jpeg")
             else:
                 self.send_error(404)
+        elif self.path == "/api/annotations":
+            try:
+                body = open(ANNOT_PATH, "rb").read()
+            except OSError:
+                body = b"{}"
+            self._send(body, "application/json")
+        else:
+            self.send_error(404)
+
+    def do_POST(self):
+        try:
+            n = int(self.headers.get("Content-Length", "0"))
+            req = json.loads(self.rfile.read(n) or b"{}")
+        except Exception:
+            self.send_error(400); return
+        if req.get("pw") != ADMIN_PW:
+            self.send_error(403); return
+        name = os.path.basename(str(req.get("name", "")))
+        if self.path == "/api/login":
+            self._send(b'{"ok":true}', "application/json")
+        elif self.path == "/api/delete" and name.endswith(".jpg"):
+            admin_delete(name)
+            self._send(b'{"ok":true}', "application/json")
+        elif self.path == "/api/bbox" and name.endswith(".jpg"):
+            try:
+                annot = json.load(open(ANNOT_PATH))
+            except Exception:
+                annot = {}
+            boxes = req.get("boxes") or []
+            if boxes:
+                annot[name] = boxes
+            else:
+                annot.pop(name, None)
+            json.dump(annot, open(ANNOT_PATH, "w"))
+            self._send(b'{"ok":true}', "application/json")
         else:
             self.send_error(404)
 
@@ -256,21 +472,33 @@ def main():
         n += 1
         stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         path = os.path.join(IMG_DIR, f"{stamp}.jpg")
-        ir(True)                      # (re)assert IR on before every shot
-        time.sleep(0.4)
-        print(f"[{stamp}] capture #{n}: IR {'held on' if IR_HOLD else 'on -> shoot -> off'}",
-              flush=True)
+        light = i2c_read(0x12)        # 0-255, higher = brighter
+        night = not sun_up()
+        use_ir = IR_HOLD or (night and (light is None or light < IR_LIGHT_MAX))
+        if use_ir:
+            ir(True)                  # (re)assert IR on before the shot
+            time.sleep(0.4)
+        why = ("held on" if IR_HOLD else "on" if use_ir
+               else "off (sun up)" if not night else "off (bright night)")
+        print(f"[{stamp}] capture #{n}: sun={'down' if night else 'up'} "
+              f"light={'?' if light is None else light} -> IR {why}", flush=True)
         try:
-            ok = capture(path)
+            ok = capture(path, day=not use_ir)
         except Exception as e:
             ok = False
             print(f"  capture error: {e}", flush=True)
-        if not IR_HOLD:
+        if use_ir and not IR_HOLD:
             ir(False)
+        if ok:
+            stamp_image(path, stamp)
         print(f"  {'saved ' + str(os.path.getsize(path)) + ' bytes' if ok else 'FAILED'}",
               flush=True)
         prune_old(MAX_STORED)         # bound SD usage
         write_status()                # battery / light / fw for the gallery
+        i2c_write(0x0E, [1])          # re-assert always-on every cycle: if the
+        #   Arduino brown-outs and resets (IR surge on a low battery), it forgets
+        #   the flag and would cut the Pi's power on its own timeout - re-arming
+        #   each loop keeps us alive through resets
         time.sleep(max(1, INTERVAL - (time.time() - start)))
 
 
