@@ -162,11 +162,18 @@ function ageMin(f){const m=f.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/
 function setStatus(t,c){document.getElementById('status').textContent=t;document.getElementById('dot').className='dot '+c;}
 function b64json(s){return JSON.parse(decodeURIComponent(escape(atob(s.replace(/\s/g,'')))));}
 
+let mEtag='', mCache=null;
 async function load(){
   let m=null;
-  try{                                   // primary: GitHub API (real-time)
-    const r=await fetch(MANIFEST_API+'&t='+Date.now(),{cache:'no-store'});
-    if(r.ok){ const j=await r.json(); m=b64json(j.content); }
+  try{                                   // primary: GitHub API (real-time).
+    // ETag conditional polling: a 304 "nothing changed" answer is FREE (does
+    // not count against the 60/hr rate limit), so only actual updates spend
+    // quota and the real-time path never degrades to the stale raw CDN.
+    const h={};
+    if(mEtag) h['If-None-Match']=mEtag;
+    const r=await fetch(MANIFEST_API,{headers:h,cache:'no-store'});
+    if(r.status===304) m=mCache;
+    else if(r.ok){ mEtag=r.headers.get('etag')||''; const j=await r.json(); m=mCache=b64json(j.content); }
   }catch(e){}
   if(!m){                                // fallback: raw CDN (not rate-limited, ~min stale)
     try{ const r=await fetch(MANIFEST_RAW+'?t='+Date.now(),{cache:'no-store'});
