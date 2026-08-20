@@ -16,6 +16,7 @@ I2C to Arduino @0x08 (firmware v0.2):
 import datetime
 import http.server
 import json
+import math
 import os
 import socketserver
 import subprocess
@@ -50,6 +51,9 @@ IR_LIGHT_MAX = _int_env("IR_LIGHT_MAX", 100)                # fire IR only when 
 #   sensor reads BELOW this (0-255, higher = brighter; ~215 = bright daylight).
 #   100 = the field-proven legacy trap default (duskValue 400 on the raw
 #   0-1023 scale / 4). Set 256 to always use IR, 0 to never.
+LAT = float(os.environ.get("TIMELAPSE_LAT", "57.05"))       # camera site (Aalborg, DK)
+LON = float(os.environ.get("TIMELAPSE_LON", "9.92"))        # east positive
+SUN_DAY_ELEV = float(os.environ.get("TIMELAPSE_SUN_ELEV", "-4"))  # sun above this = day
 STATUS_FILE = os.path.join(IMG_DIR, "status.json")          # telemetry for the gallery
 I2C_ADDR = 0x08
 IR_PIN = 0                           # CMD_SET_OUTPUT pin id 0 = IR/flash (D5)
@@ -133,6 +137,26 @@ def prune_old(keep):
             os.replace(os.path.join(IMG_DIR, f), os.path.join(dst, f))
         except OSError:
             pass
+
+
+def sun_up():
+    """True while the sun is above SUN_DAY_ELEV degrees. The light sensor sits
+    UNDER the belly, shaded by the body, so it reads 'night' in broad daylight -
+    astronomy decides day vs night; the LDR only fine-tunes within the night
+    window (e.g. a lit yard needs no IR)."""
+    d = time.time() / 86400.0 - 10957.5                      # days since J2000.0
+    g = math.radians((357.529 + 0.98560028 * d) % 360.0)     # solar mean anomaly
+    lam = math.radians(((280.459 + 0.98564736 * d)           # ecliptic longitude
+                        + 1.915 * math.sin(g) + 0.020 * math.sin(2 * g)) % 360.0)
+    e = math.radians(23.437)                                 # obliquity
+    ra = math.degrees(math.atan2(math.cos(e) * math.sin(lam), math.cos(lam)))
+    dec = math.asin(math.sin(e) * math.sin(lam))
+    gmst = (280.46061837 + 360.98564736629 * d) % 360.0      # sidereal time
+    ha = math.radians((gmst + LON - ra) % 360.0)             # local hour angle
+    la = math.radians(LAT)
+    elev = math.degrees(math.asin(
+        math.sin(la) * math.sin(dec) + math.cos(la) * math.cos(dec) * math.cos(ha)))
+    return elev > SUN_DAY_ELEV
 
 
 def ir(on):
@@ -449,13 +473,15 @@ def main():
         stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         path = os.path.join(IMG_DIR, f"{stamp}.jpg")
         light = i2c_read(0x12)        # 0-255, higher = brighter
-        use_ir = IR_HOLD or light is None or light < IR_LIGHT_MAX
+        night = not sun_up()
+        use_ir = IR_HOLD or (night and (light is None or light < IR_LIGHT_MAX))
         if use_ir:
             ir(True)                  # (re)assert IR on before the shot
             time.sleep(0.4)
-        print(f"[{stamp}] capture #{n}: light={'?' if light is None else light} -> "
-              f"IR {'held on' if IR_HOLD else ('on' if use_ir else 'skipped (bright)')}",
-              flush=True)
+        why = ("held on" if IR_HOLD else "on" if use_ir
+               else "off (sun up)" if not night else "off (bright night)")
+        print(f"[{stamp}] capture #{n}: sun={'down' if night else 'up'} "
+              f"light={'?' if light is None else light} -> IR {why}", flush=True)
         try:
             ok = capture(path, day=not use_ir)
         except Exception as e:
@@ -469,6 +495,10 @@ def main():
               flush=True)
         prune_old(MAX_STORED)         # bound SD usage
         write_status()                # battery / light / fw for the gallery
+        i2c_write(0x0E, [1])          # re-assert always-on every cycle: if the
+        #   Arduino brown-outs and resets (IR surge on a low battery), it forgets
+        #   the flag and would cut the Pi's power on its own timeout - re-arming
+        #   each loop keeps us alive through resets
         time.sleep(max(1, INTERVAL - (time.time() - start)))
 
 

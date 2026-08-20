@@ -253,6 +253,7 @@ def main():
     print(f"uploader v2: {OWNER}/{REPO} branch {BRANCH}, keep {KEEP} jpgs, "
           f"one video @{VID_FPS}fps w{VID_W}, every {INTERVAL}s", flush=True)
     imgdir = None
+    fails = 0
     while True:
         try:
             if imgdir is None:                # (re)initialise inside the loop so a
@@ -266,9 +267,16 @@ def main():
                     n = len([f for f in os.listdir(imgdir) if f.endswith(".jpg")])
                     print(f"pushed: {n} jpgs in window, video {video_frame_count()} frames",
                           flush=True)
+            fails = 0
         except Exception as e:
             print(f"cycle error: {e}", flush=True)
             imgdir = None
+            fails += 1
+            if fails >= 3:                    # a power cut can corrupt the work repo
+                print("[git] repeated failures - rebuilding work repo from scratch",
+                      flush=True)              # (it holds only derived state; one full
+                shutil.rmtree(WORK, ignore_errors=True)   # re-push recreates it)
+                fails = 0
         time.sleep(INTERVAL)
 
 
