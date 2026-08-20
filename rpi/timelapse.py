@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Insect Detector - WiFi timelapse with live web gallery.
+"""Project Mariehøne - WiFi timelapse with live web gallery.
 
 Runs on the trap Raspberry Pi. Every INTERVAL seconds it drives the IR output
 on the Arduino, captures a frame, drives IR back off, and stores the JPEG. A
@@ -202,12 +202,12 @@ def write_status():
 
 
 # ---- capture ----
-FOOTER_TEXT = os.environ.get("TIMELAPSE_FOOTER", "InsectDetect · by Hugo Markoff")
+FOOTER_TEXT = os.environ.get("TIMELAPSE_FOOTER", "Project Mariehøne · by Hugo Markoff")
 
 
 def stamp_image(path, stamp):
     """Trail-camera footer: a half-transparent bar along the bottom with the
-    timestamp (left) and the InsectDetect credit (right)."""
+    timestamp (left) and the Project Mariehøne credit (right)."""
     try:
         from PIL import Image, ImageDraw, ImageFont
     except ImportError:
@@ -251,7 +251,7 @@ def capture(path, day=True):
 # ---- web gallery ----
 GALLERY_HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>InsectDetect</title>
+<title>Project Mariehøne</title>
 <style>
   :root{color-scheme:dark}
   *{box-sizing:border-box}
@@ -274,7 +274,7 @@ GALLERY_HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8">
   .empty{color:#9c9a8c;padding:40px 0;text-align:center}
 </style></head><body>
 <header>
-  <h1><span class="dot"></span>InsectDetect</h1>
+  <h1><span class="dot"></span>Project Mariehøne</h1>
   <span class="meta"><b id="count">0</b> frames</span>
   <span class="meta">latest: <b id="latest">-</b></span>
   <span class="meta">every __INTERVAL__ s &middot; next in <b id="next">-</b></span>

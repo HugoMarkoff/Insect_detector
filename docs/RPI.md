@@ -73,7 +73,7 @@ everything below (deps, deploy key, gh-pages, services) and only asks you to
 paste one public key:
 
 ```bash
-cd Insect_detector/rpi && GH_USER=<your-github-user> ./setup.sh
+cd project-mariehoene/rpi && GH_USER=<your-github-user> ./setup.sh
 ```
 
 <details><summary>Or do it manually</summary>
@@ -85,7 +85,7 @@ sudo apt-get update && sudo apt-get install -y git python3-smbus2   # (smbus2 vi
 # 2. Deploy key (grant the Pi push access to just this repo)
 ssh-keygen -t ed25519 -N '' -f ~/.ssh/insectcam_deploy -C insectcam-pi
 cat ~/.ssh/insectcam_deploy.pub
-#   → add at github.com/<you>/Insect_detector/settings/keys  (✅ Allow write access)
+#   → add at github.com/<you>/project-mariehoene/settings/keys  (✅ Allow write access)
 
 # 3. Copy scripts to ~/ , then install the services
 sudo cp insect-timelapse.service insect-uploader.service /etc/systemd/system/

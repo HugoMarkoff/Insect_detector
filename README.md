@@ -1,6 +1,8 @@
-# 🐛 Insect Detector
+# 🐞 Project Mariehøne
 
-[![Live gallery](https://img.shields.io/badge/live-gallery-4fce8d)](https://hugomarkoff.github.io/Insect_detector/)
+*“Mariehøne” is Danish for ladybug — which is exactly what the enclosure is.*
+
+[![Live gallery](https://img.shields.io/badge/live-gallery-4fce8d)](https://hugomarkoff.github.io/project-mariehoene/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 ![Platform](https://img.shields.io/badge/ATmega328P%20%2B%20Raspberry%20Pi-informational)
 
@@ -9,7 +11,7 @@ public gallery. An ATmega328P controller drives an infrared illuminator and a
 Raspberry Pi + NoIR camera to take a frame every few minutes — no motion
 trigger, just steady frames, day and night.
 
-### ▶ Live gallery: **https://hugomarkoff.github.io/Insect_detector/**
+### ▶ Live gallery: **https://hugomarkoff.github.io/project-mariehoene/**
 
 Built on the **Animal Detect Trap PCB V3.3** — ATmega328P +
 Raspberry Pi + IMX708 NoIR camera, reverse-engineered from the Altium project
@@ -70,7 +72,7 @@ battery. See the command table in [docs/HARDWARE.md](docs/HARDWARE.md).
    ```
 3. **Set up the Raspberry Pi** — clone this repo on the Pi and run the installer:
    ```bash
-   cd Insect_detector/rpi && GH_USER=<you> ./setup.sh
+   cd project-mariehoene/rpi && GH_USER=<you> ./setup.sh
    ```
    It installs the capture loop, local gallery, and GitHub Pages publisher as
    systemd services, and walks you through the deploy key. Details in

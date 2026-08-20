@@ -30,7 +30,7 @@ except ImportError:
     detect = None
 
 OWNER = os.environ.get("GH_OWNER", "HugoMarkoff")
-REPO = os.environ.get("GH_REPO", "Insect_detector")
+REPO = os.environ.get("GH_REPO", "project-mariehoene")
 BRANCH = os.environ.get("GH_BRANCH", "images")
 SRC = os.environ.get("TIMELAPSE_DIR", os.path.expanduser("~/timelapse_images"))
 HIST = os.environ.get("TIMELAPSE_HISTORY", os.path.expanduser("~/timelapse_history"))
@@ -63,8 +63,8 @@ def ensure_repo():
         os.makedirs(imgdir, exist_ok=True)
         git("init", "-q")
         git("checkout", "-q", "--orphan", BRANCH)
-        git("config", "user.email", "cam@insect-detector.local")
-        git("config", "user.name", "insect-cam")
+        git("config", "user.email", "cam@mariehoene.local")
+        git("config", "user.name", "mariehoene-cam")
         with open(os.path.join(WORK, ".gitattributes"), "w") as f:
             f.write("*.jpg -text\n*.mp4 -text\n")
     os.makedirs(imgdir, exist_ok=True)

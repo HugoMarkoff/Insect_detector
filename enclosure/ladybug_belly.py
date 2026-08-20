@@ -1,5 +1,5 @@
 """
-Insect Detector - ladybug enclosure v1.2 (belly + shell + legs).
+Project Mariehøne - ladybug enclosure v1.2 (belly + shell + legs).
 
 v1.2: body grown ~20% in floor area (130x172 -> 142x188) and the shell walls
 slimmed (6/3.2 -> 3.0/2.6) so the dome is real storage space - every hardware

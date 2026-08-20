@@ -1,5 +1,5 @@
 [Unit]
-Description=Insect Detector - push timelapse frames to GitHub Pages
+Description=Project Mariehøne - push timelapse frames to GitHub Pages
 After=network-online.target insect-timelapse.service
 Wants=network-online.target
 
@@ -9,7 +9,7 @@ User=tester
 Environment=TIMELAPSE_DIR=/home/tester/timelapse_images
 Environment=TIMELAPSE_INTERVAL=180
 Environment=GH_OWNER=HugoMarkoff
-Environment=GH_REPO=Insect_detector
+Environment=GH_REPO=project-mariehoene
 Environment=GH_BRANCH=images
 Environment=GH_KEEP=60
 Environment=GH_UPLOAD_INTERVAL=90

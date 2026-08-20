@@ -50,7 +50,7 @@ def flash(port):
 
 
 def main():
-    print(f"{C}=== Insect Detector firmware flasher (v0.2) ==={X}")
+    print(f"{C}=== Project Mariehoene firmware flasher (v0.2) ==={X}")
     print("Wire a bootloaded board to the adapter: GND, TX, RX, DTR (+5V/battery).")
     print("Each board takes ~10 s. Ctrl+C or close the window to stop.\n")
     log("flasher started")
